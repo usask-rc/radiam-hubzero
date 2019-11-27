@@ -28,12 +28,12 @@ Log into your HubZero administration section.  Click on the menu for Components 
 
 ## Removal
 
-Remove the database tables:
+Remove the database tables and entension entries:
 
 ```
 cd /var/www/hubname
 
-php muse migration -d=down -e=com_radiam
+php muse migration -d=down -e=com_radiam -f
 ```
 
 Then delete the entire contents of the component:
