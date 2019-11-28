@@ -22,6 +22,12 @@ Html::behavior('framework');
 
 
 <div style="padding-left:30px"><h2><?php echo Lang::txt('COM_RADIAM_SETTINGS'); ?></h2></div>
+<?php
+if ($canDo->get('core.create'))
+{
+	Toolbar::addNew('adminradconfig');
+}
+?>
 <table class="adminlist">
 	<thead>
 		<tr>
