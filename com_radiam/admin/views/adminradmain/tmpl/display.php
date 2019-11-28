@@ -22,7 +22,7 @@ Html::behavior('framework');
 
 
 <div style="padding-left:30px"><h2><?php echo Lang::txt('COM_RADIAM_SETTINGS'); ?></h2>
-<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradconfig&task=add'); ?>" class="toolbar toolbar-submit" data-title="New" data-task="adminradconfig"><span class="icon-new icon-32-new">New</span></a>
+<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradconfig&task=add'); ?>" data-title="New" data-task="adminradconfig"><span class="icon-new icon-32-new">Add New</span></a>
 </div>
 <table class="adminlist">
 	<thead>
@@ -75,7 +75,9 @@ Html::behavior('framework');
 	</tbody>
 </table>
 
-<div style="padding-left:30px"><h2><?php echo Lang::txt('COM_RADIAM_PROJECTS'); ?></h2></div>
+<div style="padding-left:30px"><h2><?php echo Lang::txt('COM_RADIAM_PROJECTS'); ?></h2>
+<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradproject&task=add'); ?>" data-title="New" data-task="adminradconfig"><span class="icon-new icon-32-new">Add New</span></a>
+</div>
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
 		<div class="grid">

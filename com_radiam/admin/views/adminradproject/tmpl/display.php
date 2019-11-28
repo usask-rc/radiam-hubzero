@@ -41,6 +41,7 @@ Toolbar::help('adminradmain');
 Html::behavior('framework');
 ?>
 
+<div style="padding-left:30px;padding-top:10px;"><a href="index.php?option=com_radiam">&lt; <?php echo Lang::txt('COM_RADIAM_BACK'); ?></a></div>
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
 		<div class="grid">

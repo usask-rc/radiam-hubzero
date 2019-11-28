@@ -11,7 +11,7 @@ $canDo = \Components\Radiam\Helpers\Permissions::getActions('radconfig');
 // Here we'll had the title of the component and various options
 // for adding/editing/etc based on if the user has permission to
 // perform such actions.
-Toolbar::title(Lang::txt('COM_RADIAM') . ': ' . Lang::txt('COM_RADIAM_RADCONFIG'));
+Toolbar::title(Lang::txt('COM_RADIAM') . ': ' . Lang::txt('COM_RADIAM_SETTINGS'));
 if ($canDo->get('core.admin'))
 {
 	Toolbar::preferences($this->option);
@@ -41,6 +41,7 @@ Toolbar::help('adminradmain');
 Html::behavior('framework');
 ?>
 
+<div style="padding-left:30px;padding-top:10px;"><a href="index.php?option=com_radiam">&lt; <?php echo Lang::txt('COM_RADIAM_BACK'); ?></a></div>
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
 		<div class="grid">
