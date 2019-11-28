@@ -67,7 +67,12 @@ Joomla.submitbutton = function(pressbutton) {
 					<label for="field-name"><?php echo Lang::txt('COM_RADIAM_FIELD_RADUSER'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
 					<input type="text" name="fields[radiam_user_uuid]" id="field-radiam_user_uuid" size="35" value="<?php echo $this->escape($this->row->get('radiam_user_uuid')); ?>" />
 				</div>	
-				
+
+				<div class="input-wrap">
+					<label for="field-name"><?php echo Lang::txt('COM_RADIAM_FIELD_RADTOKEN'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
+					<input type="text" name="fields[radiam_token]" id="field-radiam_token" size="35" value="<?php echo $this->escape($this->row->get('radiam_token')); ?>" />
+				</div>	
+
 			</fieldset>
 		</div>
 		<div class="col span5">
