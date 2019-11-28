@@ -20,6 +20,59 @@ Toolbar::help('adminradmain');
 Html::behavior('framework');
 ?>
 
+
+<div style="padding-left:30px"><h2><?php echo Lang::txt('COM_RADIAM_SETTINGS'); ?></h2></div>
+<table class="adminlist">
+	<thead>
+		<tr>
+			<th scope="col" class="priority-4"><?php echo Html::grid('sort', 'COM_RADIAM_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+			<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_CONFIGNAME', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+			<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_CONFIGVALUE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+			<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_STATE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+		</tr>
+	</thead>
+	<tbody>
+	<?php
+	$k = 0; $i = 0;
+	foreach ($this->configs as $row) : ?>
+		<tr class="<?php echo "row$k"; ?>">
+			<td class="priority-4">
+				<?php echo $row->get('id'); ?>
+			</td>
+			<td>
+				<?php if ($canDo->get('core.edit')) { ?>
+					<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradconfig&task=edit&id=' . $row->get('id')); ?>">
+						<?php echo $this->escape(stripslashes($row->get('configname'))); ?>
+					</a>
+				<?php } else { ?>
+					<span><?php echo $this->escape(stripslashes($row->get('configname'))); ?></span>
+				<?php } ?>
+			</td>
+			<td class="priority-4">
+				<span><?php echo $this->escape(stripslashes($row->get('configvalue'))); ?></span>
+			</td>
+			<td class="priority-1">
+				<?php
+				if ($row->get('state') == 1) {
+					$alt  = Lang::txt('JPUBLISHED'); $cls  = 'publish'; $task = 'unpublish';
+				}
+				else if ($row->get('state') == 0) {
+					$alt  = Lang::txt('JUNPUBLISHED'); $task = 'publish'; $cls  = 'unpublish';
+				}
+				else if ($row->get('state') == 2) {
+					$alt  = Lang::txt('JTRASHED'); $task = 'publish'; $cls  = 'trash';
+				}
+				?>
+				<span class="state <?php echo $cls; ?>"><span><?php echo $alt; ?></span></span>
+			</td>
+		</tr>
+		<?php
+		$i++; $k = 1 - $k;
+	endforeach;
+	?>
+	</tbody>
+</table>
+
 <div style="padding-left:30px"><h2><?php echo Lang::txt('COM_RADIAM_PROJECTS'); ?></h2></div>
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
