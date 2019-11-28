@@ -69,6 +69,8 @@ Html::behavior('framework');
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->rows->copy()->total(); ?>);" /></th>
 				<th scope="col" class="priority-4"><?php echo Html::grid('sort', 'COM_RADIAM_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_CONFIGNAME', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_CONFIGVALUE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+			<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_STATE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
 		<tfoot>
@@ -99,6 +101,9 @@ Html::behavior('framework');
 							<?php echo $this->escape(stripslashes($row->get('configname'))); ?>
 						</span>
 					<?php } ?>
+				</td>
+				<td class="priority-4">
+					<span><?php echo $this->escape(stripslashes($row->get('configvalue'))); ?></span>
 				</td>
 				<td class="priority-1">
 					<?php
