@@ -18,7 +18,7 @@ class Migration20191125000002ComRadiam extends Base
 		if ($this->db->tableExists('#__radiam_radconfigs'))
 		{
 			$query = "INSERT INTO `#__radiam_radconfigs` (`id`, `configname`, `configvalue`, `created`, `created_by`, `state`)
-					VALUES (1,'radiam_api_url', 'https://dev2.radiam.ca/api/', '2019-11-26 13:05:21', 1001, 1);";
+					VALUES (1,'radiam_host_url', 'https://radiam.somewhere.edu/', '2019-11-26 13:05:21', 1001, 1);";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
