@@ -3,7 +3,7 @@
 defined('_HZEXEC_') or die();
 
 // Get the permissions helper
-$canDo = \Components\Radiam\Helpers\Permissions::getActions('radconfig');
+$canDo = \Components\Radiam\Helpers\Permissions::getActions('radproject');
 
 // Toolbar is a helper class to simplify the creation of Toolbar 
 // titles, buttons, spacers and dividers in the Admin Interface.
@@ -13,7 +13,7 @@ $canDo = \Components\Radiam\Helpers\Permissions::getActions('radconfig');
 // perform such actions. Everyone gets a cancel button.
 $text = ($this->task == 'edit' ? Lang::txt('JACTION_EDIT') : Lang::txt('JACTION_CREATE'));
 
-Toolbar::title(Lang::txt('COM_RADIAM') . ': ' . Lang::txt('COM_RADIAM_RADCONFIG') . ': ' . $text);
+Toolbar::title(Lang::txt('COM_RADIAM') . ': ' . Lang::txt('COM_RADIAM_PROJECTS') . ': ' . $text);
 if ($canDo->get('core.edit'))
 {
 	Toolbar::apply();
@@ -34,13 +34,13 @@ Joomla.submitbutton = function(pressbutton) {
 	}
 
 	// do field validation
-	if ($('#field-configname').val() == ''){
-		alert("<?php echo Lang::txt('COM_RADIAM_ERROR_MISSING_CONFIGNAME'); ?>");
+	if ($('#field-hzproject').val() == ''){
+		alert("<?php echo Lang::txt('COM_RADIAM_ERROR_MISSING_HZPROJECT'); ?>");
 	} else {
 		Joomla.submitform(pressbutton, document.getElementById('item-form'));
 	}
 	if ($('#field-configvalue').val() == ''){
-		alert("<?php echo Lang::txt('COM_RADIAM_ERROR_MISSING_CONFIGVALUE'); ?>");
+		alert("<?php echo Lang::txt('COM_RADIAM_ERROR_MISSING_RADPROJECT'); ?>");
 	} else {
 		Joomla.submitform(pressbutton, document.getElementById('item-form'));
 	}
@@ -54,15 +54,20 @@ Joomla.submitbutton = function(pressbutton) {
 				<legend><span><?php echo Lang::txt('JDETAILS'); ?></span></legend>
 
 				<div class="input-wrap">
-					<label for="field-name"><?php echo Lang::txt('COM_RADIAM_FIELD_CONFIGNAME'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
-					<input type="text" name="fields[configname]" id="field-configname" size="35" value="<?php echo $this->escape($this->row->get('configname')); ?>" />
+					<label for="field-name"><?php echo Lang::txt('COM_RADIAM_FIELD_HZPROJECT'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
+					<input type="text" name="fields[project_id]" id="field-project_id" size="35" value="<?php echo $this->escape($this->row->get('project_id')); ?>" />
 				</div>
 
 				<div class="input-wrap">
-					<label for="field-name"><?php echo Lang::txt('COM_RADIAM_FIELD_CONFIGVALUE'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
-					<input type="text" name="fields[configvalue]" id="field-configvalue" size="35" value="<?php echo $this->escape($this->row->get('configvalue')); ?>" />
+					<label for="field-name"><?php echo Lang::txt('COM_RADIAM_FIELD_RADPROJECT'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
+					<input type="text" name="fields[radiam_project_uuid]" id="field-radiam_project_uuid" size="35" value="<?php echo $this->escape($this->row->get('radiam_project_uuid')); ?>" />
 				</div>			
 
+				<div class="input-wrap">
+					<label for="field-name"><?php echo Lang::txt('COM_RADIAM_FIELD_RADUSER'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
+					<input type="text" name="fields[radiam_user_uuid]" id="field-radiam_user_uuid" size="35" value="<?php echo $this->escape($this->row->get('radiam_user_uuid')); ?>" />
+				</div>	
+				
 			</fieldset>
 		</div>
 		<div class="col span5">
