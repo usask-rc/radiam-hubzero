@@ -93,33 +93,24 @@ Html::behavior('framework');
 				<td>
 					<?php if ($canDo->get('core.edit')) { ?>
 						<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller . '&task=edit&id=' . $row->get('id')); ?>">
-							<?php echo $this->escape(stripslashes($row->get('configname'))); ?>
+							<?php echo $this->escape(stripslashes($row->get('project_id'))); ?>
 						</a>
 					<?php } else { ?>
 						<span>
-							<?php echo $this->escape(stripslashes($row->get('configname'))); ?>
+							<?php echo $this->escape(stripslashes($row->get('project_id'))); ?>
 						</span>
 					<?php } ?>
 				</td>
 				<td class="priority-1">
 					<?php
-					if ($row->get('state') == 1)
-					{
-						$alt  = Lang::txt('JPUBLISHED');
-						$cls  = 'publish';
-						$task = 'unpublish';
+					if ($row->get('state') == 1) {
+						$alt  = Lang::txt('JPUBLISHED'); $cls  = 'publish'; $task = 'unpublish';
 					}
-					else if ($row->get('state') == 0)
-					{
-						$alt  = Lang::txt('JUNPUBLISHED');
-						$task = 'publish';
-						$cls  = 'unpublish';
+					else if ($row->get('state') == 0) {
+						$alt  = Lang::txt('JUNPUBLISHED'); $task = 'publish'; $cls  = 'unpublish';
 					}
-					else if ($row->get('state') == 2)
-					{
-						$alt  = Lang::txt('JTRASHED');
-						$task = 'publish';
-						$cls  = 'trash';
+					else if ($row->get('state') == 2) {
+						$alt  = Lang::txt('JTRASHED'); $task = 'publish'; $cls  = 'trash';
 					}
 
 					if ($canDo->get('core.edit.state')) { ?>
