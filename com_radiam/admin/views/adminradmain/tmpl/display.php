@@ -104,8 +104,9 @@ Html::behavior('framework');
 		<thead>
 			<tr>
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->rows->copy()->total(); ?>);" /></th>
-				<th scope="col" class="priority-4"><?php echo Html::grid('sort', 'COM_RADIAM_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-				<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_HZPROJECT', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-4"><?php echo Html::grid('sort', 'COM_RADIAM_COL_HZPROJECT', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-4"><?php echo Html::grid('sort', 'COM_RADIAM_COL_RADPROJECT', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_STATE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
@@ -122,7 +123,7 @@ Html::behavior('framework');
 				<td>
 					<input type="checkbox" name="id[]" id="cb<?php echo $i; ?>" value="<?php echo $row->get('id') ?>" onclick="isChecked(this.checked, this);" />
 				</td>
-				<td class="priority-4">
+				<td>
 					<?php echo $row->get('id'); ?>
 				</td>
 				<td>
@@ -134,7 +135,16 @@ Html::behavior('framework');
 						<span><?php echo $this->escape(stripslashes($row->get('project_id'))); ?></span>
 					<?php } ?>
 				</td>
-				<td class="priority-1">
+				<td>
+					<?php if ($canDo->get('core.edit')) { ?>
+						<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradproject&task=edit&id=' . $row->get('id')); ?>">
+							<?php echo $this->escape(stripslashes($row->get('radiam_project_uuid'))); ?>
+						</a>
+					<?php } else { ?>
+						<span><?php echo $this->escape(stripslashes($row->get('radiam_project_uuid'))); ?></span>
+					<?php } ?>
+				</td>
+				<td>
 					<?php
 					if ($row->get('state') == 1) {
 						$alt  = Lang::txt('JPUBLISHED'); $cls  = 'publish'; $task = 'unpublish';
