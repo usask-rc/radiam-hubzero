@@ -27,10 +27,10 @@ Html::behavior('framework');
 <table class="adminlist">
 	<thead>
 		<tr>
-			<th scope="col" class="priority-4"><?php echo Html::grid('sort', 'COM_RADIAM_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-			<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_CONFIGNAME', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-			<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_CONFIGVALUE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
-			<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_STATE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+			<th scope="col" class="priority-4"><?php echo Lang::txt('COM_RADIAM_COL_ID'); ?></th>
+			<th scope="col" class="priority-1"><?php echo Lang::txt('COM_RADIAM_COL_CONFIGNAME'); ?></th>
+			<th scope="col" class="priority-1"><?php echo Lang::txt('COM_RADIAM_COL_CONFIGVALUE'); ?></th>
+			<th scope="col" class="priority-1"><?php echo Lang::txt('COM_RADIAM_COL_STATE'); ?></th>
 		</tr>
 	</thead>
 	<tbody>
