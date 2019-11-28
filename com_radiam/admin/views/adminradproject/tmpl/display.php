@@ -36,7 +36,7 @@ if ($canDo->get('core.create'))
 	Toolbar::addNew();
 }
 Toolbar::spacer();
-Toolbar::help('radconfig');
+Toolbar::help('adminradmain');
 
 Html::behavior('framework');
 ?>
