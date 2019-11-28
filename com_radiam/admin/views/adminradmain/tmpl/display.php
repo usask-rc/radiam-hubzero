@@ -47,6 +47,7 @@ Html::behavior('framework');
 			<tr>
 				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->rows->copy()->total(); ?>);" /></th>
 				<th scope="col" class="priority-4"><?php echo Html::grid('sort', 'COM_RADIAM_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
+				<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_HZPROJECT', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_STATE', 'state', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 			</tr>
 		</thead>
