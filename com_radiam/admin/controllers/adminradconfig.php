@@ -82,7 +82,7 @@ class Adminradconfig extends AdminController
 			'sort' => Request::getState(
 				$this->_option . '.' . $this->_controller . '.sort',
 				'filter_order',
-				'configname'
+				'id'
 			),
 			'sort_Dir' => Request::getState(
 				$this->_option . '.' . $this->_controller . '.sortdir',

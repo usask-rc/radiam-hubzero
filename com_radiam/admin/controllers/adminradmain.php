@@ -45,27 +45,27 @@ class Adminradmain extends AdminController
 	 */
 	public function displayTask()
 	{
-		// Get the incoming filters to apply to the entries list
+		// Get the incoming filters to apply to the project list
 		//
 		$filters = array(
 			'search' => urldecode(Request::getState(
-				$this->_option . '.' . $this->_controller . '.search',
+				$this->_option . '.adminradproject.search',
 				'search',
 				''
 			)),
 			'state' => urldecode(Request::getState(
-				$this->_option . '.' . $this->_controller . '.state',
+				$this->_option . '.adminradproject.state',
 				'state',
 				-1
 			)),
 			// Get sorting variables
 			'sort' => Request::getState(
-				$this->_option . '.' . $this->_controller . '.sort',
+				$this->_option . '.adminradproject.sort',
 				'filter_order',
-				'configname'
+				'id'
 			),
 			'sort_Dir' => Request::getState(
-				$this->_option . '.' . $this->_controller . '.sortdir',
+				$this->_option . '.adminradproject.sortdir',
 				'filter_order_Dir',
 				'ASC'
 			)
@@ -79,7 +79,7 @@ class Adminradmain extends AdminController
 		}
 		if ($search = $filters['search'])
 		{
-			$record->whereLike('configname', $search);
+			$record->whereLike('project_id', $search);
 		}
 		$rows = $record
 			->ordered('filter_order', 'filter_order_Dir')
