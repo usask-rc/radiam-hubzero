@@ -10,24 +10,8 @@ use Lang;
 use App;
 
 /**
- * Radiam controller for RadConfig
+ * Radiam admin controller for projects
  * 
- * Accepts an array of configuration values to the constructor. If no config 
- * passed, it will automatically determine the component and controller names.
- * Internally, sets the $database, $user, $view, and component $config.
- * 
- * Executable tasks are determined by method name. All public methods that end in 
- * "Task" (e.g., displayTask, editTask) are callable by the end user.
- * 
- * View name defaults to controller name with layout defaulting to task name. So,
- * a $controller of "One" and a $task of "two" will map to:
- *
- * /{component name}
- *     /{client name}
- *         /views
- *             /one
- *                 /tmpl
- *                     /two.php
  */
 class Adminradproject extends AdminController
 {
@@ -82,7 +66,7 @@ class Adminradproject extends AdminController
 			'sort' => Request::getState(
 				$this->_option . '.' . $this->_controller . '.sort',
 				'filter_order',
-				'configname'
+				'id'
 			),
 			'sort_Dir' => Request::getState(
 				$this->_option . '.' . $this->_controller . '.sortdir',
@@ -93,8 +77,8 @@ class Adminradproject extends AdminController
 
 		// Get our model
 		// This is the entry point to the database and the 
-		// table of radconfigs we'll be retrieving data from
-		$record = RadConfig::all();
+		// table of projects we'll be retrieving data from
+		$record = RadProject::all();
 
 		if ($filters['state'] >= 0)
 		{
@@ -103,7 +87,7 @@ class Adminradproject extends AdminController
 
 		if ($search = $filters['search'])
 		{
-			$record->whereLike('configname', $search);
+			$record->whereLike('project_id', $search);
 		}
 
 		$rows = $record
@@ -150,7 +134,7 @@ class Adminradproject extends AdminController
 			}
 
 			// Load the record
-			$row = RadConfig::oneOrNew($id);
+			$row = RadProject::oneOrNew($id);
 		}
 
 		// Output the view
@@ -185,7 +169,7 @@ class Adminradproject extends AdminController
 		$fields = Request::getVar('fields', array(), 'post', 'none', 2);
 
 		// Initiate the model and bind the incoming data to it
-		$row = RadConfig::oneOrNew($fields['id'])->set($fields);
+		$row = RadProject::oneOrNew($fields['id'])->set($fields);
 
 		// Validate and save the data
 		//
@@ -253,7 +237,7 @@ class Adminradproject extends AdminController
 			// Loop through all the IDs
 			foreach ($ids as $id)
 			{
-				$entry = RadConfig::oneOrFail(intval($id));
+				$entry = RadProject::oneOrFail(intval($id));
 
 				// Delete the entry
 				//
@@ -324,7 +308,7 @@ class Adminradproject extends AdminController
 		foreach ($ids as $id)
 		{
 			// Load the entry and set its state
-			$row = RadConfig::oneOrNew(intval($id))->set(array('state' => $state));
+			$row = RadProject::oneOrNew(intval($id))->set(array('state' => $state));
 
 			// Store the changes
 			if (!$row->save())
