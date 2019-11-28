@@ -2,7 +2,7 @@
 namespace Components\Radiam\Admin\Controllers;
 
 use Hubzero\Component\AdminController;
-use Components\Radiam\Models\RadConfig;
+use Components\Radiam\Models\RadProject;
 use Request;
 use Notify;
 use Route;
@@ -29,7 +29,7 @@ use App;
  *                 /tmpl
  *                     /two.php
  */
-class Adminradconfig extends AdminController
+class Adminradproject extends AdminController
 {
 	/**
 	 * Execute a task
