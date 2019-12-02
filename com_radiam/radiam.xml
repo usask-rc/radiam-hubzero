@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="2.0">
 	<name>Radiam</name>
-	<author>Compute Canada</author>
-	<copyright>Copyright 2019 Compute Canada</copyright>
-	<license>MIT</license>
-	<description>Radiam HubZero component</description>
+	<author>Radiam Team</author>
+	<copyright>Copyright 2019 University of Saskatchewan and Simon Fraser University</copyright>
+	<license>http://opensource.org/licenses/MIT MIT</license>
+	<description>COM_RADIAM_DESCRIPTION</description>
 	<files>
 		<filename>router.php</filename>
 		<filename>radiam.php</filename>
