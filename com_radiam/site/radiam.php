@@ -9,7 +9,7 @@ include_once dirname(__DIR__) . '/models/radconfig.php';
 // We'll load in our controller. This example component only has
 // one controller, so we can declare it specifically.
 //
-include_once __DIR__ . '/controllers/radconfig.php';
+include_once __DIR__ . '/controllers/radiamsitemain.php';
 
 // Build the class name
 //
