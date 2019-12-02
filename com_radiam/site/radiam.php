@@ -27,7 +27,7 @@ include_once __DIR__ . '/controllers/radconfig.php';
 // ... we get the final class name of "Components\Radiam\Site\Controllers\RadConfig".
 //
 
-$controllerName = __NAMESPACE__ . '\\Controllers\\RadConfig';
+$controllerName = __NAMESPACE__ . '\\Controllers\\Radiamsitemain';
 
 // Instantiate the controller
 $component = new $controllerName();

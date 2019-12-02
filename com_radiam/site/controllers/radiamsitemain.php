@@ -11,26 +11,10 @@ use User;
 use App;
 
 /**
- * Radiam controller for configuration
+ * Radiam site controller
  * 
- * Accepts an array of configuration values to the constructor. If no config 
- * passed, it will automatically determine the component and controller names.
- * Internally, sets the $database, $user, $view, and component $config.
- * 
- * Executable tasks are determined by method name. All public methods that end in 
- * "Task" (e.g., displayTask, editTask) are callable by the end user.
- * 
- * View name defaults to controller name with layout defaulting to task name. So,
- * a $controller of "One" and a $task of "two" will map to:
- *
- * /{component name}
- *     /{client name}
- *         /views
- *             /one
- *                 /tmpl
- *                     /two.php
  */
-class RadConfig extends SiteController
+class Radiamsitemain extends SiteController
 {
 	/**
 	 * Determine task to perform and execute it.
