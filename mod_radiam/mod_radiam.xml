@@ -28,14 +28,11 @@
 	<config>
 		<fields name="params">
 			<fieldset name="basic">
-				<!-- parameter to allow placement of a module class suffix for the module table / xhtml display -->
-				<field name="cls" type="text" default="" label="MOD_RADIAM_PARAM_CLS_LABEL" description="MOD_RADIAM_PARAM_CLS_DESC" />
-
 				<!-- just gives us a little room between the previous paramter and the next -->
 				<field name="@spacer" type="spacer" default="" label="" description="" />
 
 				<!-- A parameter that allows an administrator to modify the number of users that this module will display -->
-				<field name="usercount" type="text" default="5" label="MOD_RADIAM_PARAM_USER_COUNT_LABEL" description="MOD_RADIAM_PARAM_USER_COUNT_DESC" />
+				<field name="projectcount" type="text" default="5" label="MOD_RADIAM_PARAM_PROJECT_COUNT_LABEL" description="MOD_RADIAM_PARAM_PROJECT_COUNT_DESC" />
 			</fieldset>
 		</fields>
 	</config>

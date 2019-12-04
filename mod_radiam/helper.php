@@ -13,29 +13,31 @@ class Helper extends Module
 	 */
 	public function display()
 	{
-		$items = $this->getItems($this->params->get('usercount', 5));
+		$limit = intval($this->params->get('projectcount', 'mod_radiam'));
+		if ($limit == 0) { $limit = 5; }
+		$projects = $this->getRadProjects($limit);
 
 		require $this->getLayoutPath();
 	}
 
 	/**
-	 * Retrieves items from the database
+	 * Retrieves projects from the database
 	 *
-	 * @param   integer  $userCount  The number of items to return
+	 * @param   integer  $count  The number of projects to return
 	 * @return  array
 	 */
-	public function getItems($userCount)
+	public function getRadProjects($count)
 	{
 		// Get a reference to the database
 		$db = App::get('db');
 
-		// Get a list of $userCount randomly ordered users 
-		$query = 'SELECT a.name FROM `#__users` AS a ORDER BY rand() LIMIT ' . intval($userCount)  . '';
+		// Get a list of Projects
+		$query = 'SELECT * FROM `#__radiam_radprojects` LIMIT ' . intval($count) . '';
 
 		$db->setQuery($query);
-		$items = $db->loadObjectList();
-		$items = ($items) ? $items : array();
+		$projects = $db->loadObjectList();
+		$projects = ($projects) ? $projects : array();
 
-		return $items;
+		return $projects;
 	}
 }

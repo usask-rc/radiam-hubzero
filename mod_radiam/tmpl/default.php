@@ -2,13 +2,13 @@
 // No direct access
 defined('_HZEXEC_') or die();
 ?>
-<div class="<?php echo $this->params->get('cls', 'mod_radiam'); ?>">
-	<?php echo Lang::txt('MOD_RADIAM_RANDOM_USERS'); ?>
+<div class="<?php echo $this->params->get('projectcount', 'mod_radiam'); ?>">
+	<?php echo Lang::txt('MOD_RADIAM_MOD_TITLE'); ?>
 
 	<ul>
-		<?php foreach ($items as $item) { ?>
+		<?php foreach ($projects as $project) { ?>
 			<li>
-				<?php echo Lang::txt('MOD_RADIAM_USER_LABEL', $item->name); ?>
+				<?php echo $project->radiam_project_uuid; ?>
 			</li>
 		<?php } ?>
 	</ul>
