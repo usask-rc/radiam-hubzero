@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="module" client="site" version="2.0.0">
+	<name>MOD_RADIAM</name>
+	<author>Radiam Team</author>
+	<creationDate>2019-12-03</creationDate>
+	<copyright>University of Saskatchewan and Simon Fraser University</copyright>
+	<license>MIT</license>
+	<authorUrl>https://www.radiam.ca</authorUrl>
+	<version>1.0.0</version>
+	<description>MOD_RADIAM_DESCRIPTION</description>
+
+	<!-- Listing of all files that should be installed for the module to function -->
+	<files>
+		<!-- The "module" attribute signifies that this is the main controller file -->
+		<filename module="mod_radiam">mod_radiam.php</filename>
+		<filename>index.html</filename>
+		<filename>helper.php</filename>
+		<filename>tmpl/default.php</filename>
+		<filename>tmpl/index.html</filename>
+	</files>
+
+	<languages>
+		<!-- Any language files included with the module -->
+		<language tag="en-GB">language/en-GB/en-GB.mod_radiam.ini</language>
+	</languages>
+
+	<!-- Optional parameters -->
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<!-- parameter to allow placement of a module class suffix for the module table / xhtml display -->
+				<field name="cls" type="text" default="" label="MOD_RADIAM_PARAM_CLS_LABEL" description="MOD_RADIAM_PARAM_CLS_DESC" />
+
+				<!-- just gives us a little room between the previous paramter and the next -->
+				<field name="@spacer" type="spacer" default="" label="" description="" />
+
+				<!-- A parameter that allows an administrator to modify the number of users that this module will display -->
+				<field name="usercount" type="text" default="5" label="MOD_RADIAM_PARAM_USER_COUNT_LABEL" description="MOD_RADIAM_PARAM_USER_COUNT_DESC" />
+			</fieldset>
+		</fields>
+	</config>
+</extension>
