@@ -49,7 +49,7 @@ class Router extends Base
 	{
 		$vars = array();
 
-		$vars['controller'] = 'radconfig';
+		$vars['controller'] = 'radiam';
 
 		if (isset($segments[0]))
 		{

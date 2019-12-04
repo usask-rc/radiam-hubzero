@@ -16,7 +16,7 @@ require_once dirname(dirname(__DIR__)) . DS . 'models' . DS . 'radconfig.php';
 /**
  * API controller class for radconfig
  */
-class RadConfigv1_0 extends ApiController
+class Radiamv1_0 extends ApiController
 {
 	/**
 	 * Display a list of entries

@@ -1,5 +1,4 @@
 <?php
-// Declare the namespace.
 namespace Components\Radiam\Site;
 
 use Hubzero\Component\Router\Base;
@@ -42,16 +41,44 @@ class Router extends Base
 	{
 		$segments = array();
 
-		if (!empty($query['task'])) 
-		{
-			$segments[] = $query['task'];
-			unset($query['task']);
-		}
-		if (!empty($query['id'])) 
-		{
-			$segments[] = $query['id'];
-			unset($query['id']);
-		}
+        if (!empty($query['task']))
+        {
+            $segments[] = $query['task'];
+            unset($query['task']);
+        }
+        if (!empty($query['controller']))
+        {
+            if ($query['controller'] == 'media')
+            {
+                $segments[] = $query['controller'];
+            }
+            unset($query['controller']);
+        }
+        if (!empty($query['project']))
+        {
+            $segments[] = $query['project'];
+            unset($query['project']);
+        }
+        if (!empty($query['search']))
+        {
+            $segments[] = $query['search'];
+            unset($query['search']);
+        }
+        if (!empty($query['task']))
+        {
+            $segments[] = $query['task'];
+            unset($query['task']);
+        }
+        if (!empty($query['alias']))
+        {
+            $segments[] = $query['alias'];
+            unset($query['alias']);
+        }
+        if (!empty($query['action']))
+        {
+            $segments[] = $query['action'];
+            unset($query['action']);
+        }
 
 		return $segments;
 	}

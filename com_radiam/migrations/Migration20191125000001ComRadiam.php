@@ -56,6 +56,20 @@ class Migration20191125000001ComRadiam extends Base
 			$this->db->query();
 		}
 
+		if (!$this->db->tableExists('#__radiam_radtokens'))
+		{
+			$query = "CREATE TABLE IF NOT EXISTS `#__radiam_radtokens` (
+			  `user_id` int(11) unsigned NOT NULL,
+			  `access_token` text DEFAULT '',
+			  `refresh_token` text DEFAULT '',
+			  `valid_until` datetime DEFAULT '0000-00-00 00:00:00',
+			  PRIMARY KEY (`user_id`)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+
+			$this->db->setQuery($query);
+			$this->db->query();
+		}
+
 	}
 
 	/**
@@ -73,6 +87,13 @@ class Migration20191125000001ComRadiam extends Base
 		if ($this->db->tableExists('#__radiam_radprojects'))
 		{
 			$query = "DROP TABLE #__radiam_radprojects";
+			$this->db->setQuery($query);
+			$this->db->query();
+		}
+
+		if ($this->db->tableExists('#__radiam_radtokens'))
+		{
+			$query = "DROP TABLE #__radiam_radtokens";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}

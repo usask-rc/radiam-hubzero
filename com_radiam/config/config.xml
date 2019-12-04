@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <config>
-	<fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
-		<field name="rules" type="rules" label="JCONFIG_PERMISSIONS_LABEL" class="inputbox" validate="rules" filter="rules" component="com_blog" section="component" />
-	</fieldset>
+    <fieldset name="basic">
+        <field name="title" type="text" menu="hide" default="" label="COM_RADIAM_CONFIG_TITLE_LABEL" description="COM_RADIAM_CONFIG_TITLE_DESC" />
+        <field name="@spacer" type="spacer" default="" label="" description="" />
+        <field name="uploadpath" type="text" menu="hide" default="/site/radiam" label="COM_RADIAM_CONFIG_UPLOADS_LABEL" description="COM_RADIAM_CONFIG_UPLOADS_DESC" />
+        <field name="radiamurl" type="text" menu="hide" default="http://206-12-89-170.cloud.computecanada.ca/api/oauth/token/" label="COM_RADIAM_CONFIG_RADIAM_URL_LABEL" description="COM_RADIAM_CONFIG_RADIAM_URL_DESC" />
+        <field name="clientid" type="text" menu="hide" default="" label="COM_RADIAM_CONFIG_CLIENT_ID_LABEL" description="COM_RADIAM_CONFIG_CLIENT_ID_DESC" />
+        <field name="clientsecret" type="text" menu="hide" default="" label="COM_RADIAM_CONFIG_CLIENT_SECRET_LABEL" description="COM_RADIAM_CONFIG_CLIENT_SECRET_DESC" />
+    </fieldset>
+    <fieldset name="permissions" label="JCONFIG_PERMISSIONS_LABEL" description="JCONFIG_PERMISSIONS_DESC">
+        <field name="rules" type="rules" label="JCONFIG_PERMISSIONS_LABEL" class="inputbox" validate="rules" filter="rules" component="com_radiam" section="component" />
+    </fieldset>
 </config>
