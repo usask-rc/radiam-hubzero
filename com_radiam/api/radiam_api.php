@@ -148,8 +148,7 @@ class Radiam
             $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
             if (statusCode != 200) {
-                # TODO: embed status code and response text in log string
-                $this->log("Unable to refresh auth token");
+                $this->log(sprintf("Unable to refresh auth token %s:\n%s\n", $statusCode, $result));
             } else {
                 $this->writeAuthToFile()
                 $respObj = json_decode($result, true);
@@ -163,8 +162,7 @@ class Radiam
             $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
             if (statusCode != 200) {
-                # TODO: embed status code and response text in log string
-                $this->log("Unable to refresh auth token");
+                $this->log(sprintf("Unable to refresh auth token %s:\n%s\n", $statusCode, $result));
             } else {
                 $respObj = json_decode($result, true);
                 if ($respObj->access != null) {
@@ -202,8 +200,7 @@ class Radiam
                 $response = $this->apiGet($url, ($retries - 1));
                 return $response;
             } else {
-                # TODO: variable substitution in string
-                $this->log("Unauthorized request");
+                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } elseif ($statusCode == 200) {
             $response = json_decode($result);
@@ -217,8 +214,7 @@ class Radiam
             }
             $this->apiGet($url, 1)
         } else {
-            # TODO: variable substitution again
-            $this->log("Radiam API error")
+            $this->log(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
             return $response;
         }
@@ -256,8 +252,7 @@ class Radiam
                 $response = $this->apiPost($url, $body, ($retries - 1));
                 return $response;
             } else {
-                # TODO: variable substitution in string
-                $this->log("Unauthorized request");
+                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } elseif ($statusCode == 200 || $statusCode == 201) {
             $response = json_decode($result);
@@ -271,8 +266,7 @@ class Radiam
             }
             $this->apiPost($url, $body, 1)
         } else {
-            # TODO: variable substitution again
-            $this->log("Radiam API error")
+            $this->log(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result))
             $response = null;
             return $response;
         }
@@ -310,8 +304,7 @@ class Radiam
                 $response = $this->apiPostBulk($url, $body, ($retries - 1));
                 return $response;
             } else {
-                # TODO: variable substitution in string
-                $this->log("Unauthorized request");
+                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } elseif ($statusCode == 200 || $statusCode == 201) {
             $response = json_decode($result);
@@ -325,8 +318,7 @@ class Radiam
             }
             $this->apiPostBulk($url, $body, 1)
         } else {
-            # TODO: variable substitution again
-            $this->log("Radiam API error")
+            $this->log(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
             return $response;
         }
@@ -361,8 +353,7 @@ class Radiam
                 $response = $this->apiDelete($url, ($retries - 1));
                 return $response;
             } else {
-                # TODO: variable substitution in string
-                $this->log("Unauthorized request");
+                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } elseif ($statusCode == 200 || $statusCode == 204) {
             $response = true;
@@ -376,8 +367,7 @@ class Radiam
             }
             $this->apiDelete($url, 1)
         } else {
-            # TODO: variable substitution again
-            $this->log("Radiam API error")
+            $this->log(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
             return $response;
         }
@@ -650,8 +640,7 @@ class Radiam
                 $this->writeAuthToFile();
                 return $this->apiGet($url, ($retries - 1));
             } else {
-                # TODO: same as above, insert variable into string
-                $this->log("Unauthorized request");
+                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } else {
             return $statusCode;
