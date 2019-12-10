@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="module" client="site" version="2.0.0">
-	<name>Radiam</name>
+	<name>mod_radiam</name>
 	<author>Radiam Team</author>
+	<authorUrl>https://www.radiam.ca</authorUrl>
 	<creationDate>2019-12-03</creationDate>
 	<copyright>University of Saskatchewan and Simon Fraser University</copyright>
 	<license>http://opensource.org/licenses/MIT MIT</license>
-	<authorUrl>https://www.radiam.ca</authorUrl>
 	<version>1.0.0</version>
-	<description>Radiam module for end users</description>
+	<description>MOD_RADIAM_DESCRIPTION</description>
 
 	<!-- Listing of all files that should be installed for the module to function -->
 	<files>
