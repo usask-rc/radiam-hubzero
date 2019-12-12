@@ -3,6 +3,7 @@ namespace Components\Radiam\Admin\Controllers;
 
 use Hubzero\Component\AdminController;
 use Components\Radiam\Models\RadProject;
+use Components\Projects\Models\Orm\Project;
 use Request;
 use Notify;
 use Route;
@@ -137,6 +138,9 @@ class Adminradproject extends AdminController
 			$row = RadProject::oneOrNew($id);
 		}
 
+		// Get all HubZero projects for dropdown selection
+		$hubzero_project = Project::all();
+
 		// Output the view
 		// 
 		// Make sure we load the edit view.
@@ -146,6 +150,7 @@ class Adminradproject extends AdminController
 		// saveTask has no layout!
 		$this->view
 			->set('row', $row)
+			->set('hubzero_project', $hubzero_project)
 			->setLayout('edit')
 			->display();
 	}

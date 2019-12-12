@@ -53,9 +53,19 @@ Joomla.submitbutton = function(pressbutton) {
 			<fieldset class="adminform">
 				<legend><span><?php echo Lang::txt('JDETAILS'); ?></span></legend>
 
-				<div class="input-wrap">
+				<!-- <div class="input-wrap">
 					<label for="field-name"><?php echo Lang::txt('COM_RADIAM_FIELD_HZPROJECT'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
 					<input type="text" name="fields[project_id]" id="field-project_id" size="35" value="<?php echo $this->escape($this->row->get('project_id')); ?>" />
+				</div> -->
+
+				<div class="input-wrap">
+					<label for="project_id"><?php echo Lang::txt('COM_RADIAM_FIELD_HZPROJECT'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
+					<select name="fields[project_id]" id="field-project_id">
+						<?php foreach ($this->hubzero_project as $project) : ?>
+							<?php $sel = ($project['id'] == $this->row->project_id) ? 'selected="selected"' : ''; ?>
+							<option <?php echo $sel; ?> value="<?php echo $project['id']; ?>"><?php echo $this->escape($project['id']); ?></option>
+						<?php endforeach; ?>
+					</select>
 				</div>
 
 				<div class="input-wrap">

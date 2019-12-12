@@ -11,6 +11,7 @@ if (!\User::authorise('core.manage', 'com_radiam'))
 // Load the models
 require_once dirname(__DIR__) . '/models/radconfig.php';
 require_once dirname(__DIR__) . '/models/radproject.php';
+require_once dirname(dirname(__DIR__)) . '/com_projects/models/orm/project.php'; 
 
 // Get the permissions helper.
 // This is a class that ties into the permissions ACL and 
