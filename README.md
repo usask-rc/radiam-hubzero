@@ -17,7 +17,7 @@ cd /var/www/hubname
 php muse migration
 ```
 
-That command should list at least two database migrations that will be run.  If it looks OK, you can proceed:
+That command should list at least three database migrations that will be run: two for the component, one for the module.  If it looks OK, you can proceed:
 
 ```
 # Full run this time
@@ -26,13 +26,31 @@ php muse migration -f
 
 ## Configuration
 
-Log into your HubZero administration section.  Click on the menu for Components and find Radiam, click on it.  Edit the `radiam_host_url` setting to match where your Radiam instance is.
+### Component Configuration
 
-Click on the menu for modules and add a new module.  Find Radiam.  Configure it with a location of "memberDashboard".
+The component is installed and available to administrators after running the migration above.  
+
+- Log into your HubZero administration section
+- Click on the menu for Components and find Radiam in the list and click on it
+- Edit the `radiam_host_url` setting to match where your Radiam instance is
+
+### Module Configuration
+
+The module is installed but not available until you create an instance of it.
+
+- Log into your HubZero administration section
+- Click on the menu Extensions -> Module Manager
+- Click the "+" sign to add a new module instance
+- Scroll down to the `mod_radiam` module and click on the module name to bring up the Add Module form:
+    - Title = Radiam
+    - Show Title = show
+    - Position = memberDashboard
+    - Status = published
+    - Access = public
 
 ## Viewing
 
-As a regular HubZero user, navigate to your dashboard.  Install the Radiam module in your dashboard.
+As a regular HubZero user, navigate to your dashboard.  Add the Radiam module in your dashboard.
 
 
 ## Removal
