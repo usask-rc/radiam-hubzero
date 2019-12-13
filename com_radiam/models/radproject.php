@@ -55,6 +55,16 @@ class RadProject extends Relational
 	}
 
 	/**
+	 * Defines a belongs to one relationship with project
+	 *
+	 * @return  object
+	 */
+	public function project()
+	{
+		return $this->belongsToOne('Components\Projects\Models\Orm\Project');
+	}
+
+	/**
 	 * Return a formatted timestamp for the 
 	 * created date
 	 *
