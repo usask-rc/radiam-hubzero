@@ -36,7 +36,7 @@ use Components\Radiam\Models\Entry;
 use Components\Radiam\Models\Files;
 use Components\Radiam\Models\Project;
 use Components\Radiam\Models\Projects;
-use Components\Radiam\Models\Token;
+use Components\Radiam\Models\Radtoken;
 use Hubzero\Component\SiteController;
 use Hubzero\Utility\String;
 use Hubzero\Utility\Sanitize;
@@ -95,7 +95,7 @@ class Radiam extends SiteController
 
         if (!User::isGuest())
         {
-            $token = Token::oneOrNew(User::get('id'));
+            $token = Radtoken::oneOrNew(User::get('id'));
             if ($token != null && !$token->expired())
             {
                 $this->redirect($url='display', null, null);
@@ -105,7 +105,7 @@ class Radiam extends SiteController
 
         if ($username != null && $password != null)
         {
-            $token = Token::get_token($this, $username, $password);
+            $token = Radtoken::get_token($this, $username, $password);
             // $this->redirect($url='display', null, null);
             // TODO delete this
             $this->view
@@ -198,7 +198,7 @@ class Radiam extends SiteController
             return false;
         }
 
-        $token = Token::oneOrNew(User::get('id'));
+        $token = Radtoken::oneOrNew(User::get('id'));
 
         if ($token == null)
         {
