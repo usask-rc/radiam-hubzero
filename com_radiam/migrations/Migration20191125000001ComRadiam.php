@@ -59,11 +59,12 @@ class Migration20191125000001ComRadiam extends Base
 		if (!$this->db->tableExists('#__radiam_radtokens'))
 		{
 			$query = "CREATE TABLE IF NOT EXISTS `#__radiam_radtokens` (
+			  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 			  `user_id` int(11) unsigned NOT NULL,
 			  `access_token` text DEFAULT '',
 			  `refresh_token` text DEFAULT '',
 			  `valid_until` datetime DEFAULT '0000-00-00 00:00:00',
-			  PRIMARY KEY (`user_id`)
+			  PRIMARY KEY (`id`)
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 
 			$this->db->setQuery($query);
