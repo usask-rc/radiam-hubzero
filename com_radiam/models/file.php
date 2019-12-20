@@ -84,24 +84,24 @@ class File
                     <?php echo $this->renderMain($this->agent, "col-sm-1 col-md-1 col-lg-1"); ?>
                     <?php echo $this->renderMain($this->location, "col-sm-1 col-md-1 col-lg-1"); ?>
                     <div class="show col-sm-1 col-md-1 col-lg-1">
-                        <div class="btn btn-primary"><?php echo Lang::txt('CA_RADIAM_MORE'); ?></div>
+                        <div class="btn btn-primary"><?php echo Lang::txt('COM_RADIAM_MORE'); ?></div>
                     </div>
                     <div class="hide col-sm-1 col-md-1 col-lg-1">
-                        <div class="btn btn-secondary"><?php echo Lang::txt('CA_RADIAM_LESS'); ?></div>
+                        <div class="btn btn-secondary"><?php echo Lang::txt('COM_RADIAM_LESS'); ?></div>
                     </div>
                 </div>
                 <div class="extra-metadata-container">
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_OWNER', $this->owner); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_GROUP', $this->group); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_LAST_MODIFIED', $this->lastModified); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_LAST_CHANGE', $this->lastChange); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_LAST_ACCESS', $this->lastAccess); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_INDEXED_BY', $this->indexedBy); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_INDEXING_DATE', $this->indexingDate); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_INDEXED_DATE', $this->indexedDate); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_NAME', $this->name); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_EXT', $this->extension); ?>
-                    <?php echo $this->renderExtra('CA_RADIAM_LABEL_PARENT', $this->pathParent); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_OWNER', $this->owner); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_GROUP', $this->group); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_LAST_MODIFIED', $this->lastModified); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_LAST_CHANGE', $this->lastChange); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_LAST_ACCESS', $this->lastAccess); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_INDEXED_BY', $this->indexedBy); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_INDEXING_DATE', $this->indexingDate); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_INDEXED_DATE', $this->indexedDate); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_NAME', $this->name); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_EXT', $this->extension); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_PARENT', $this->pathParent); ?>
                 </div>
             </div>
         <?php

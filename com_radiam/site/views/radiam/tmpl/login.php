@@ -85,19 +85,19 @@ $this->css()
             <?php } ?>
             <?php if (User::isGuest()) { ?>
                 <div>
-                    <?php echo Lang::txt('CA_RADIAM_NEED_USER'); ?>
+                    <?php echo Lang::txt('COM_RADIAM_NEED_USER'); ?>
                 </div>
             <?php } else { ?>
-                <h3><?php echo Lang::txt('CA_RADIAM_LOGIN_HEADING'); ?></h3>
+                <h3><?php echo Lang::txt('COM_RADIAM_LOGIN_HEADING'); ?></h3>
                 <div>
-                    <?php echo Lang::txt('CA_RADIAM_USER_LABEL'); ?>
+                    <?php echo Lang::txt('COM_RADIAM_USER_LABEL'); ?>
                     <input type="text" name="username" required>
                 </div>
                 </br>
                 <div>
-                    <?php echo Lang::txt('CA_RADIAM_PASSWORD_LABEL'); ?>
+                    <?php echo Lang::txt('COM_RADIAM_PASSWORD_LABEL'); ?>
                     <input type="password" name="passwd" class="passwd" required></div></br>
-                <input class="login-submit btn btn-primary" type="submit" value="<?php echo Lang::txt('CA_RADIAM_SUBMIT'); ?>">
+                <input class="login-submit btn btn-primary" type="submit" value="<?php echo Lang::txt('COM_RADIAM_SUBMIT'); ?>">
 
 
             <?php } ?>

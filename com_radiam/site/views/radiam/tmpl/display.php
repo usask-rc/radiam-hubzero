@@ -61,7 +61,7 @@ $this->css()
     <h2><?php echo Lang::txt('COM_RADIAM'); ?></h2>
 
     <div id="content-header-extra">
-        <span><?php echo Lang::txt('CA_RADIAM_PROJECT'); ?></span>
+        <span><?php echo Lang::txt('COM_RADIAM_PROJECT'); ?></span>
         <?php echo $projects->renderSelect($project); ?>
     </div>
 </header>
@@ -112,31 +112,31 @@ function formatBytes($bytes, $decimals) {
                 </h3>
 
                 <?php if ($projects->count == 0) { ?>
-                    <p class="warning"><?php echo Lang::txt('CA_RADIAM_NO_PROJECTS_FOUND'); ?></p>
+                    <p class="warning"><?php echo Lang::txt('COM_RADIAM_NO_PROJECTS_FOUND'); ?></p>
                 <?php } else if ($noFilesInSearch) { ?>
-                    <p class="warning"><?php echo Lang::txt('CA_RADIAM_NO_FILES_FOUND_SEARCH'); ?></p>
+                    <p class="warning"><?php echo Lang::txt('COM_RADIAM_NO_FILES_FOUND_SEARCH'); ?></p>
                 <?php } else if ($noFilesInProject) { ?>
-                    <p class="warning"><?php echo Lang::txt('CA_RADIAM_NO_FILES_FOUND'); ?></p>
+                    <p class="warning"><?php echo Lang::txt('COM_RADIAM_NO_FILES_FOUND'); ?></p>
                 <?php } else if ($projects->count >= 1 && $files->count > 0) { ?>
                     <div class="headings">
                         <div class="row">
                             <div class="col-sm-8 col-md-8 col-lg-8">
-                                <?php echo Lang::txt('CA_RADIAM_FILENAME'); ?>
+                                <?php echo Lang::txt('COM_RADIAM_FILENAME'); ?>
                             </div>
                             <div class="col-sm-1 col-md-1 col-lg-1">
-                                <?php echo Lang::txt('CA_RADIAM_SIZE'); ?>
+                                <?php echo Lang::txt('COM_RADIAM_SIZE'); ?>
                             </div>
                             <div class="col-sm-1 col-md-1 col-lg-1">
-                                <?php echo Lang::txt('CA_RADIAM_AGENT'); ?>
+                                <?php echo Lang::txt('COM_RADIAM_AGENT'); ?>
                             </div>
                             <div class="col-sm-1 col-md-1 col-lg-1">
-                                <?php echo Lang::txt('CA_RADIAM_LOCATION'); ?>
+                                <?php echo Lang::txt('COM_RADIAM_LOCATION'); ?>
                             </div>
                             <div class="show-all col-sm-1 col-md-1 col-lg-1">
-                                <div class="btn btn-primary"><?php echo Lang::txt('CA_RADIAM_MORE_ALL'); ?></div>
+                                <div class="btn btn-primary"><?php echo Lang::txt('COM_RADIAM_MORE_ALL'); ?></div>
                             </div>
                             <div class="hide-all col-sm-1 col-md-1 col-lg-1">
-                                <div class="btn btn-secondary"><?php echo Lang::txt('CA_RADIAM_LESS_ALL'); ?></div>
+                                <div class="btn btn-secondary"><?php echo Lang::txt('COM_RADIAM_LESS_ALL'); ?></div>
                             </div>
                         </div>
                     </div>
