@@ -31,6 +31,7 @@ class Adminradproject extends AdminController
 		$this->registerTask('apply', 'save');
 		$this->registerTask('publish', 'state');
 		$this->registerTask('unpublish', 'state');
+		$this->registerTask('delete', 'remove');
 
 		// Call the parent execute() method. Important! Otherwise, the
 		// controller will never actually execute anything.

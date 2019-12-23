@@ -21,7 +21,7 @@ Html::behavior('framework');
 ?>
 
 
-<div style="padding-left:30px"><h2><?php echo Lang::txt('COM_RADIAM_SETTINGS'); ?></h2>
+<div style="padding-left:30px"><h2><a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradconfig&task=display'); ?>"><?php echo Lang::txt('COM_RADIAM_SETTINGS'); ?></a></h2>
 <a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradconfig&task=add'); ?>" data-title="New" data-task="adminradconfig"><span class="icon-new icon-32-new">Add New</span></a>
 </div>
 <table class="adminlist">
@@ -75,8 +75,8 @@ Html::behavior('framework');
 	</tbody>
 </table>
 
-<div style="padding-left:30px"><h2><?php echo Lang::txt('COM_RADIAM_PROJECTS'); ?></h2>
-<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradproject&task=add'); ?>" data-title="New" data-task="adminradconfig"><span class="icon-new icon-32-new">Add New</span></a>
+<div style="padding-left:30px"><h2><a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradproject&task=display'); ?>"><?php echo Lang::txt('COM_RADIAM_PROJECTS'); ?></a></h2>
+<a href="<?php echo Route::url('index.php?option=' . $this->option . '&controller=adminradproject&task=add'); ?>"><span class="icon-new icon-32-new">Add New</span></a>
 </div>
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm" id="adminForm">
 	<fieldset id="filter-bar">
@@ -103,7 +103,6 @@ Html::behavior('framework');
 	<table class="adminlist">
 		<thead>
 			<tr>
-				<th><input type="checkbox" name="toggle" value="" onclick="checkAll(<?php echo $this->rows->copy()->total(); ?>);" /></th>
 				<th scope="col" class="priority-1"><?php echo Html::grid('sort', 'COM_RADIAM_COL_ID', 'id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-4"><?php echo Html::grid('sort', 'COM_RADIAM_COL_HZPROJECT', 'project_id', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
 				<th scope="col" class="priority-4"><?php echo Html::grid('sort', 'COM_RADIAM_COL_RADPROJECT', 'radiam_project_uuid', @$this->filters['sort_Dir'], @$this->filters['sort']); ?></th>
@@ -120,9 +119,6 @@ Html::behavior('framework');
 		$k = 0; $i = 0;
 		foreach ($this->rows as $row) : ?>
 			<tr class="<?php echo "row$k"; ?>">
-				<td>
-					<input type="checkbox" name="id[]" id="cb<?php echo $i; ?>" value="<?php echo $row->get('id') ?>" onclick="isChecked(this.checked, this);" />
-				</td>
 				<td>
 					<?php echo $row->get('id'); ?>
 				</td>
