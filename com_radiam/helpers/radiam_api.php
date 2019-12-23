@@ -1,47 +1,40 @@
 <?php
-// Not sure about the namespace stuff
-// namespace Components\Radiam\Api;
+namespace Components\Radiam\Helpers;
 
 
 /**
- * Main API class
+ * Main Radiam API class
  */
-class Radiam
+class RadiamAPI
 {
-    private static function init() {
-        if (!$didInit) {
-            $didInit = true;
-            $this->logger = null;
-            $this->tokenfile = null;
-            $this->baseurl = "http://nginx";
-            $this->headers = array(
-                "Content-Type" => "application/json",
-                "Accept" => "application/json"
-            );
-            $this->authtokens = [];
-            # TODO: are we handling multiple arbitrary kv pairs here still?
-            # for key, value in kwargs.items():
-                # setattr(self, key, value)
-            if (isset($this->baseurl)) {
-                if (!startsWith($this->baseurl, "http")) {
-                    $this->baseurl = "http://" . $this->baseurl;
-                }
-                $this->endpoints = array(
-                    "login"=> $this->baseurl . "/api/token/",
-                    "refresh"=> $this->baseurl . "/api/token/refresh/",
-                    "users"=> $this->baseurl . "/api/users/",
-                    "groups"=> $this->baseurl . "/api/researchgroups/",
-                    "projects"=> $this->baseurl . "/api/projects/",
-                    "locations"=> $this->baseurl . "/api/locations/",
-                    "locationtypes"=> $this->baseurl . "/api/locationtypes/",
-                    "useragents"=> $this->baseurl . "/api/useragents/"
-                )
+    function __construct($baseurl) {
+        $this->logger = null;
+        $this->tokenfile = null;
+        $this->baseurl = $baseurl;
+        $this->headers = array(
+            "Content-Type" => "application/json",
+            "Accept" => "application/json"
+        );
+        $this->authtokens = [];
+        if (isset($this->baseurl)) {
+            if (substr($this->baseurl, 0, 4) !== "http") {
+                $this->baseurl = "http://" . $this->baseurl;
             }
+            if (substr($this->baseurl, 0, -1) !== "/") {
+                $this->baseurl = $this->baseurl . "/";
+            }
+            $this->endpoints = array(
+                "login"        => $this->baseurl . "api/token/",
+                "refresh"      => $this->baseurl . "api/token/refresh/",
+                "users"        => $this->baseurl . "api/users/",
+                "groups"       => $this->baseurl . "api/researchgroups/",
+                "projects"     => $this->baseurl . "api/projects/",
+                "locations"    => $this->baseurl . "api/locations/",
+                "locationtypes"=> $this->baseurl . "api/locationtypes/",
+                "useragents"   => $this->baseurl . "api/useragents/"
+            )
         }
     }
-
-
-    Radiam::init();
 
 
     /**
@@ -49,8 +42,8 @@ class Radiam
      *
      * @param   object?  $logger The logger
      */
-    public function setLogger($query) {
-        $this->logger = logger;
+    public function setLogger($logger) {
+        $this->logger = $logger;
     }
 
 
