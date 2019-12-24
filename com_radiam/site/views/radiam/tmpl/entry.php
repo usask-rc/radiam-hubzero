@@ -315,17 +315,6 @@ $first = $this->archive->entries(array(
 			->whereEquals('parent', 0)
 			->ordered()
 			->rows();
-
-		if ($comments->count() > 0) {
-			$this->view('_list')
-				->set('parent', 0)
-				->set('option', $this->option)
-				->set('comments', $comments)
-				->set('config', $this->config)
-				->set('depth', 0)
-				->set('cls', 'odd')
-				->set('base', $this->row->link())
-				->display();
 			?>
 		<?php } else { ?>
 			<p class="no-comments">

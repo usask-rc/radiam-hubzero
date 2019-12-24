@@ -46,13 +46,6 @@ class Adminradproject extends AdminController
 	public function displayTask()
 	{
 		// Get some incoming filters to apply to the entries list
-		//
-		// The Request::getState() method makes it easy to retain values of 
-		// certain variables across page accesses. This makes development much 
-		// simpler because we no longer has to worry about losing variable values 
-		// if it is left out of a form. The best example is that the form will
-		// retain the proper filters even after navigating to the edit entry form
-		// and back.
 		$filters = array(
 			'search' => urldecode(Request::getState(
 				$this->_option . '.' . $this->_controller . '.search',
@@ -104,7 +97,7 @@ class Adminradproject extends AdminController
 	}
 
 	/**
-	 * Show a form for editing an entry
+	 * Show a form for editing a project
 	 *
 	 * @param   object  $row
 	 * @return  void
@@ -112,7 +105,7 @@ class Adminradproject extends AdminController
 	public function editTask($row=null)
 	{
 		// This is a flag to disable the main menu. This makes sure the user
-		// doesn't navigate away while int he middle of editing an entry.
+		// doesn't navigate away while int he middle of editing a project.
 		// To leave the form, one must explicitely call the "cancel" task.
 		Request::setVar('hidemainmenu', 1);
 
@@ -157,7 +150,7 @@ class Adminradproject extends AdminController
 	}
 
 	/**
-	 * Save an entry
+	 * Save a project
 	 *
 	 * @return  void
 	 */
@@ -243,20 +236,20 @@ class Adminradproject extends AdminController
 			// Loop through all the IDs
 			foreach ($ids as $id)
 			{
-				$entry = RadProject::oneOrFail(intval($id));
+				$project = RadProject::oneOrFail(intval($id));
 
-				// Delete the entry
+				// Delete the project
 				//
 				// NOTE: It's generally preferred to use the model to delete
 				// entries instead of direct SQL statements as the model will
 				// typically take care of associated data and clean up after itself.
-				if (!$entry->destroy())
+				if (!$project->destroy())
 				{
 					// If the deletion process fails for any reason, we'll take the 
 					// error message passed from the model and assign it to the message
 					// handler to be displayed by the template after we redirect back
 					// to the main listing.
-					Notify::error($entry->getError());
+					Notify::error($project->getError());
 					continue;
 				}
 
@@ -313,7 +306,7 @@ class Adminradproject extends AdminController
 		$success = 0;
 		foreach ($ids as $id)
 		{
-			// Load the entry and set its state
+			// Load the project and set its state
 			$row = RadProject::oneOrNew(intval($id))->set(array('state' => $state));
 
 			// Store the changes

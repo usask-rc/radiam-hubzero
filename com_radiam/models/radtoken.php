@@ -174,7 +174,7 @@ class Radtoken extends Relational
         if ($valid)
         {
             $results = \Event::trigger('content.onContentBeforeSave', array(
-                'com_radiam.entry.content',
+                'com_radiam.radtoken',
                 &$this,
                 $this->isNew()
             ));

@@ -22,7 +22,7 @@ if ($canDo->get('core.edit'))
 }
 Toolbar::cancel();
 Toolbar::spacer();
-Toolbar::help('entry');
+Toolbar::help('adminradmain');
 ?>
 <script type="text/javascript">
 Joomla.submitbutton = function(pressbutton) {

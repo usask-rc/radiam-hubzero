@@ -77,7 +77,6 @@ $this->css()
 
 <section class="main section">
 
-
     <form action="<?php echo Route::url('index.php?option=' . $this->option . '&task=login'); ?>" method="post" class="section-inner">
         <div class="subject">
             <?php if ($this->getError()) { ?>
@@ -98,7 +97,6 @@ $this->css()
                     <?php echo Lang::txt('COM_RADIAM_PASSWORD_LABEL'); ?>
                     <input type="password" name="passwd" class="passwd" required></div></br>
                 <input class="login-submit btn btn-primary" type="submit" value="<?php echo Lang::txt('COM_RADIAM_SUBMIT'); ?>">
-
 
             <?php } ?>
                 <div class="clearfix"></div>

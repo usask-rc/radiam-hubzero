@@ -112,7 +112,7 @@ class RadProject extends Relational
 	}
 
 	/**
-	 * Generate and return various links to the entry
+	 * Generate and return various links to the project
 	 * Link will vary depending upon action desired, such as edit, delete, etc.
 	 *
 	 * @param   string  $type  The type of link to return

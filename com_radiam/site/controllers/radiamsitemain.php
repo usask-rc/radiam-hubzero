@@ -77,7 +77,7 @@ class Radiamsitemain extends SiteController
 	}
 
 	/**
-	 * Display an entry.
+	 * Display
 	 *
 	 * @return  void
 	 */

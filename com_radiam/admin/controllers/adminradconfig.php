@@ -65,7 +65,7 @@ class Adminradconfig extends AdminController
 		// certain variables across page accesses. This makes development much 
 		// simpler because we no longer has to worry about losing variable values 
 		// if it is left out of a form. The best example is that the form will
-		// retain the proper filters even after navigating to the edit entry form
+		// retain the proper filters even after navigating to the edit config form
 		// and back.
 		$filters = array(
 			'search' => urldecode(Request::getState(
@@ -118,7 +118,7 @@ class Adminradconfig extends AdminController
 	}
 
 	/**
-	 * Show a form for editing an entry
+	 * Show a form for editing a config
 	 *
 	 * @param   object  $row
 	 * @return  void
@@ -126,7 +126,7 @@ class Adminradconfig extends AdminController
 	public function editTask($row=null)
 	{
 		// This is a flag to disable the main menu. This makes sure the user
-		// doesn't navigate away while int he middle of editing an entry.
+		// doesn't navigate away while int he middle of editing a config.
 		// To leave the form, one must explicitely call the "cancel" task.
 		Request::setVar('hidemainmenu', 1);
 
@@ -167,7 +167,7 @@ class Adminradconfig extends AdminController
 	}
 
 	/**
-	 * Save an entry
+	 * Save a config
 	 *
 	 * @return  void
 	 */
@@ -253,20 +253,20 @@ class Adminradconfig extends AdminController
 			// Loop through all the IDs
 			foreach ($ids as $id)
 			{
-				$entry = RadConfig::oneOrFail(intval($id));
+				$config = RadConfig::oneOrFail(intval($id));
 
-				// Delete the entry
+				// Delete the config
 				//
 				// NOTE: It's generally preferred to use the model to delete
 				// entries instead of direct SQL statements as the model will
 				// typically take care of associated data and clean up after itself.
-				if (!$entry->destroy())
+				if (!$config->destroy())
 				{
 					// If the deletion process fails for any reason, we'll take the 
 					// error message passed from the model and assign it to the message
 					// handler to be displayed by the template after we redirect back
 					// to the main listing.
-					Notify::error($entry->getError());
+					Notify::error($config->getError());
 					continue;
 				}
 
@@ -323,7 +323,7 @@ class Adminradconfig extends AdminController
 		$success = 0;
 		foreach ($ids as $id)
 		{
-			// Load the entry and set its state
+			// Load the config and set its state
 			$row = RadConfig::oneOrNew(intval($id))->set(array('state' => $state));
 
 			// Store the changes
