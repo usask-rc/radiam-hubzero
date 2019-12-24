@@ -243,14 +243,14 @@ class Radtoken extends Relational
     }
 
     //TODO use common codebase to make request to refresh token
-    public function refresh($that)
+    public function refresh($controller)
     {
         $debug = false;
         $user_id = User::get('id');
 
-        $radiam_url = $that->config->get('radiamurl', null);
-        $client_id = $that->config->get('clientid', null);
-        $client_secret = $that->config->get('clientsecret', null);
+        $radiam_url = $controller->config->get('radiamurl', null);
+        $client_id = $controller->config->get('clientid', null);
+        $client_secret = $controller->config->get('clientsecret', null);
 
 
         if ($this->expired())
@@ -339,14 +339,14 @@ class Radtoken extends Relational
 
     }
 
-    public static function get_token($that, $username, $password)
+    public static function get_token($controller, $username, $password)
     {
-        $debug = false;
+        $debug = true;
         $user_id = User::get('id');
 
-        $radiam_url = $that->config->get('radiamurl', null);
-        $client_id = $that->config->get('clientid', null);
-        $client_secret = $that->config->get('clientsecret', null);
+        $radiam_url = $controller->config->get('radiamurl', null);
+        $client_id = $controller->config->get('clientid', null);
+        $client_secret = $controller->config->get('clientsecret', null);
 
 
         $token = Radtoken::oneOrNew($user_id);
