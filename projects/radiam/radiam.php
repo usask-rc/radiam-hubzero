@@ -36,10 +36,10 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 			$db = App::get('db');
 
 			# FOR TESTING ACTION PURPOSE
-			$sql_test = "INSERT INTO `#__radiam_radprojects` (`radiam_project_uuid`, `radiam_user_uuid`, `radiam_token`, `created`)
-					VALUES ('{$action}', '666', '666', now())";
-			$db->setQuery($sql_test);
-			$db->execute(); 
+			// $sql_test = "INSERT INTO `#__radiam_radprojects` (`radiam_project_uuid`, `radiam_user_uuid`, `radiam_token`, `created`)
+			// 		VALUES ('{$action}', '666', '666', now())";
+			// $db->setQuery($sql_test);
+			// $db->execute(); 
 
 			# Update the last files event time
 			$sql = "UPDATE `#__radiam_radconfigs` SET `last_run`=now() WHERE `configname`='radiam_host_url'";
