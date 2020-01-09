@@ -26,6 +26,7 @@ class Migration20191125000001ComRadiam extends Base
 			  `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 			  `created_by` int(11) unsigned NOT NULL DEFAULT '0',
 			  `state` tinyint(2) NOT NULL DEFAULT '1',
+			  `last_run` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 			  PRIMARY KEY (`id`),
 			  KEY `idx_state` (`state`),
 			  KEY `idx_created_by` (`created_by`)
