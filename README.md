@@ -8,6 +8,8 @@ Copy the com_radiam directory to your HubZero installation, in the components fo
 
 Copy the mod_radiam directory to your HubZero installation, in the modules folder.  It will be located somewhere like `/var/www/hubname/app/modules` so when you're done you have a new directory `/var/www/hubname/app/modules/mod_radiam`.
 
+Copy the projects directory to your HubZero installation, in the plugins folder.  It will be located somewhere like `/var/www/hubname/app/plugins` so when you're done you have a new directory `/var/www/hubname/app/plugins/projects`.
+
 From the command line of your HubZero instance, initialize the Radiam database objects:
 
 ```
@@ -17,7 +19,7 @@ cd /var/www/hubname
 php muse migration
 ```
 
-That command should list at least three database migrations that will be run: two for the component, one for the module.  If it looks OK, you can proceed:
+That command should list at least four database migrations that will be run: two for the component, one for the module, one for the plugin.  If it looks OK, you can proceed:
 
 ```
 # Full run this time
