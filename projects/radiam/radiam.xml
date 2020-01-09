@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="1.7" type="plugin" group="projects">
+	<name>Projects - Radiam</name>
+	<author>Radiam Team</author>
+	<copyright>Copyright 2019 University of Saskatchewan and Simon Fraser University</copyright>
+	<license>http://opensource.org/licenses/MIT MIT</license>
+	<description>PLG_PROJECTS_RADIAM_DESCRIPTION</description>
+	<files>
+		<filename plugin="radiam">radiam.php</filename>
+	</files>
+</extension>
