@@ -72,6 +72,23 @@ class Migration20191125000001ComRadiam extends Base
 			$this->db->query();
 		}
 
+		if (!$this->db->tableExists('#__radiam_radqueue'))
+		{
+			$query = "CREATE TABLE IF NOT EXISTS `#__radiam_radqueue` (
+			`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+			`project_id` int(11) unsigned NOT NULL DEFAULT '0',
+			`path` varchar(255) NOT NULL DEFAULT '',
+			`action` VARCHAR(80) DEFAULT NULL,		
+			`created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+			`last_modified` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+			PRIMARY KEY (`id`),
+			KEY `idx_project` (`project_id`),
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
+
+			$this->db->setQuery($query);
+			$this->db->query();
+		}
+
 	}
 
 	/**
