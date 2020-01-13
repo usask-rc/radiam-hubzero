@@ -117,6 +117,13 @@ class Migration20191125000001ComRadiam extends Base
 			$this->db->query();
 		}
 
+		if ($this->db->tableExists('#__radiam_radqueue'))
+		{
+			$query = "DROP TABLE #__radiam_radqueue";
+			$this->db->setQuery($query);
+			$this->db->query();
+		}
+
 		$this->deleteComponentEntry('radiam');
 	}
 }
