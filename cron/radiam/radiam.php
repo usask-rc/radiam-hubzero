@@ -13,7 +13,7 @@ use Components\Radiam\Helpers\QueueHelper;
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'QueueHelper.php';
 
 /**
- * Cron plugin for projects
+ * Cron plugin for radiam
  */
 class plgCronRadiam extends \Hubzero\Plugin\Plugin
 {
@@ -27,7 +27,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		$this->loadLanguage();
 
 		$obj = new stdClass();
-		$obj->plugin = 'projects';
+		$obj->plugin = 'radiam';
 
 		$obj->events = array(
 			array(
