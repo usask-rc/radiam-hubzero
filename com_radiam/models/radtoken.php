@@ -25,6 +25,15 @@ class Radtoken extends Relational
     protected $namespace = 'radiam';
 
     /**
+	 * The table primary key name
+	 *
+	 * It defaults to 'id', but can be overwritten by a subclass.
+	 *
+	 * @var  string
+	 **/
+    protected $pk = 'user_id';
+    
+    /**
      * Default order by for model
      *
      * @var string
