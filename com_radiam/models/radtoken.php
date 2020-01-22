@@ -271,7 +271,7 @@ class Radtoken extends Relational
 
             $data = array(
                 'grant_type' => 'refresh_token',
-                'refresh_token' => $this->get('refresh_token')
+                'refresh' => $this->get('refresh_token')
             );
 
 
@@ -309,17 +309,17 @@ class Radtoken extends Relational
                 return false;
             } else {
                 $json = json_decode($output);
-                if (isset($json -> {"access_token"})) {
+                if (isset($json -> {"access"})) {
                     if ($debug)
                     {
-                        echo "<div>Access Token: " . $json->{"access_token"} . "</div>";
-                        echo "<div>Refresh Token: " . $json->{"refresh_token"} . "</div>";
-                        echo "<div>Expires In: " . date("c", (time() + $json->{"expires_in"})) . "</div>";
+                        echo "<div>Access Token: " . $json->{"access"} . "</div>";
+                        echo "<div>Refresh Token: " . $json->{"refresh"} . "</div>";
+                        // echo "<div>Expires In: " . date("c", (time() + $json->{"expires_in"})) . "</div>";
                     }
 
-                    $this->set('access_token', $json->{"access_token"})
-                        ->set('refresh_token', $json->{"refresh_token"})
-                        ->set('valid_until', date("c", (time() + $json->{"expires_in"})))
+                    $this->set('access_token', $json->{"access"})
+                        ->set('refresh_token', $json->{"refresh"})
+                        // ->set('valid_until', date("c", (time() + $json->{"expires_in"})))
                         ->save();
                     return true;
                 }
@@ -408,17 +408,17 @@ class Radtoken extends Relational
                     $token->error = $json->{"error"};
                     $token->errorMsg = $json->{"error_description"};
                     return $token;
-                } else if (isset($json -> {"access_token"})) {
+                } else if (isset($json -> {"access"})) {
                     if ($debug)
                     {
-                        echo "<div>Access Token: " . $json->{"access_token"} . "</div>";
-                        echo "<div>Refresh Token: " . $json->{"refresh_token"} . "</div>";
-                        echo "<div>Expires In: " . date("c", (time() + $json->{"expires_in"})) . "</div>";
+                        echo "<div>Access Token: " . $json->{"access"} . "</div>";
+                        echo "<div>Refresh Token: " . $json->{"refresh"} . "</div>";
+                        // echo "<div>Expires In: " . date("c", (time() + $json->{"expires_in"})) . "</div>";
                     }
 
-                    $token->set('access_token', $json->{"access_token"})
-                        ->set('refresh_token', $json->{"refresh_token"})
-                        ->set('valid_until', date("c", (time() + $json->{"expires_in"})))
+                    $token->set('access_token', $json->{"access"})
+                        ->set('refresh_token', $json->{"refresh"})
+                        // ->set('valid_until', date("c", (time() + $json->{"expires_in"})))
                         ->save();
                     return $token;
                 }
