@@ -13,8 +13,6 @@ use Date;
 
 class Project
 {
-
-    public $url = "";
     public $id = "";
     public $name = "";
     public $group = "";
@@ -24,13 +22,12 @@ class Project
     public $updated = "";
 
     function __construct($projectJson) {
-        $this->url = $projectJson->url;
-        $pieces = explode("/", substr($projectJson->url, 0, -1));
-        $this->id = end($pieces);
+
+        $this->id = $projectJson->id;
         $this->name = $projectJson->name;
         $this->group = $projectJson->group;
-        $this->projectHost = $projectJson->es_host;
-        $this->projectIndex = $projectJson->es_index;
+        // $this->projectHost = $projectJson->es_host;
+        // $this->projectIndex = $projectJson->es_index;
         $this->created = $projectJson->date_created;
         $this->updated = $projectJson->date_updated;
     }
