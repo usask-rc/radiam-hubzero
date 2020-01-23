@@ -37,6 +37,7 @@ use Components\Radiam\Models\Files;
 use Components\Radiam\Models\Project;
 use Components\Radiam\Models\Projects;
 use Components\Radiam\Models\Radtoken;
+use Components\Radiam\Helpers\Helper;
 use Hubzero\Component\SiteController;
 use Hubzero\Utility\String;
 use Hubzero\Utility\Sanitize;
@@ -156,7 +157,7 @@ class Radiam extends SiteController
     public function getJsonFromRadiamApi($access_token, $radiam_url, $path, $query=array()) {
         $header[] = "Authorization: Bearer " . $access_token;
 
-        $url = $radiam_url . $path;
+        $url = Helper::buildUrl($radiam_url, $path);
         if (isset($query)) {
             $url = $url . "?" . http_build_query($query);
         }
@@ -437,6 +438,13 @@ class Radiam extends SiteController
             $this->config->set('access-edit-' . $assetType, User::authorise('core.edit' . $at, $asset));
             $this->config->set('access-edit-state-' . $assetType, User::authorise('core.edit.state' . $at, $asset));
             $this->config->set('access-edit-own-' . $assetType, User::authorise('core.edit.own' . $at, $asset));
+
+            // Radiam Config           
+            $db = App::get('db');
+            $sql = "SELECT `configvalue` FROM `#__radiam_radconfigs` WHERE `configname` LIKE '%radiam%url%'";
+            $db->setQuery($sql);
+		    $radiam_url = $db->loadObject()->configvalue;
+            $this->config->set('radiamurl', $radiam_url);
         }
     }
 }
