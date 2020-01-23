@@ -11,11 +11,16 @@ namespace Components\Radiam\Helpers;
 defined('_HZEXEC_') or die('Restricted access');
 
 /**
- * Raidam process radqueue table helper functions
+ * General Helper functions
  *
  */
 class Helper
 {   
+    /**
+	 * Return a combined url (endpoint)
+	 *
+	 * @return  string
+	 */
     public static function buildUrl($baseUrl, $apiPath)
     {
         return rtrim($baseUrl, '/') . '/' . ltrim($apiPath, '/');
