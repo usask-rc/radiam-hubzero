@@ -131,21 +131,24 @@ class Radiam extends SiteController
     }
 
     public function getUsers($access_token, $radiam_url) {
+        // TODO Replace with proper constant / config
         return $this->getJsonFromRadiamApi($access_token, $radiam_url, "/api/users/");
     }
 
     public function getProjects($access_token, $radiam_url) {
+        // TODO Replace with proper constant / config
         $projectsJson = $this->getJsonFromRadiamApi($access_token, $radiam_url, self::PROJECTS_API);
         return new Projects($projectsJson);
     }
 
     public function getLocations($access_token, $radiam_url) {
+        // TODO Replace with proper constant / config
         $locationsJson = $this->getJsonFromRadiamApi($access_token, $radiam_url, "/api/locations/");
         return $locationsJson;
     }
 
     public function getFiles($accessToken, $radiamUrl, $projectId, $query) {
-        $filesJson = $this->getJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query);
+        $filesJson = $this->postJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query);
         return new Files($filesJson);
     }
 
@@ -182,6 +185,51 @@ class Radiam extends SiteController
 
         curl_close($ch);
 
+        if ($err) {
+            echo "cURL Error #:" . $err;
+            return false;
+        } else {
+            $json = json_decode($output);
+            return $json;
+        }
+    }
+
+    /**
+     * Post a php StdObject with the contents of the Json returned from the Radiam api
+     *
+     * $access_token - an oauth access token to use to access the API
+     * $radiam_url - the url to contact for the api
+     * $path - the path of the api to use
+     * $query - an array of query string parameters to add to the request
+    **/
+    public function postJsonFromRadiamApi($access_token, $radiam_url, $path, $query=array()) {
+        $header[] = "Authorization: Bearer " . $access_token;
+
+        $url = Helper::buildUrl($radiam_url, $path);
+        if (isset($query)) {
+            $url = $url . "?" . http_build_query($query);
+        }
+
+        // echo "URL: '" . $url . "'\n";
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 7); //Timeout after 7 seconds
+        curl_setopt($ch, CURLINFO_HEADER_OUT, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        // curl_setopt($ch, CURLOPT_POST, true);
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+
+        $output = curl_exec($ch);
+        $err = curl_error($ch);
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        curl_close($ch);
+        
         if ($err) {
             echo "cURL Error #:" . $err;
             return false;
