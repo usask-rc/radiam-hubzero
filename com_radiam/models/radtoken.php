@@ -13,6 +13,7 @@ use User;
 use Date;
 
 use Components\Radiam\Helpers\Helper;
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'Helper.php';
 
 /**
  * Model class for an oauth 2 token
