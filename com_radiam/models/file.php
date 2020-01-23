@@ -33,7 +33,7 @@ class File
     function __construct($json) {
         $this->id = $json->id;
         $this->location = $json->location;
-        $this->extension = $json->extension;
+        $this->extension = isset($json->extension) ? $json->extension : null;
         $this->lastModified = $json->last_modified;
         $this->lastChange = $json->last_change;
         $this->name = $json->name;
@@ -43,7 +43,7 @@ class File
         $this->indexedBy = $json->indexed_by;
         $this->indexingDate = $json->indexing_date;
         $this->owner = $json->owner;
-        $this->filesize = $json->filesize;
+        $this->filesize = isset($json->filesize) ? $json->filesize : null;
         $this->pathParent = $json->path_parent;
         $this->lastAccess = $json->last_access;
         $this->indexedDate = $json->indexed_date;
