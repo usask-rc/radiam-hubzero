@@ -103,7 +103,10 @@ class Radiam extends SiteController
         }
 
         if ($username != null && $password != null)
-        {
+        {   
+            $this->config->set('clientid', $username);
+            $this->config->set('clientsecret', $password);
+
             $token = Radtoken::get_token($this, $username, $password);
             // $this->redirect($url='display', null, null);
             // TODO delete this
