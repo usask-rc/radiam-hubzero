@@ -43,7 +43,6 @@ class Migration20191125000001ComRadiam extends Base
 			  `project_id` int(11) unsigned NOT NULL DEFAULT '0',
 			  `radiam_project_uuid` varchar(80) NOT NULL DEFAULT '',
 			  `radiam_user_uuid` varchar(80) NOT NULL DEFAULT '',
-			  `radiam_token` TEXT NOT NULL DEFAULT '',
 			  `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 			  `created_by` int(11) unsigned NOT NULL DEFAULT '0',
 			  `state` tinyint(2) NOT NULL DEFAULT '1',
@@ -76,7 +75,8 @@ class Migration20191125000001ComRadiam extends Base
 			$query = "CREATE TABLE IF NOT EXISTS `#__radiam_radqueue` (
 			`id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 			`project_id` int(11) unsigned NOT NULL DEFAULT '0',
-			`path` varchar(255) NOT NULL DEFAULT '',
+			`src_path` varchar(255) NOT NULL DEFAULT '',
+			`dest_path` varchar(255) DEFAULT NULL,
 			`action` VARCHAR(80) DEFAULT NULL,		
 			`created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 			`last_modified` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
