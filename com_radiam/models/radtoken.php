@@ -131,17 +131,17 @@ class Radtoken extends Relational
             return true;
         }
 
-        if (empty($this->get('valid_until')))
-        {
-            return true;
-        }
+        // if (empty($this->get('valid_until')))
+        // {
+        //     return true;
+        // }
 
-        if ($this->get('valid_until')
-         && $this->get('valid_until') != '0000-00-00 00:00:00'
-         && $this->get('valid_until') <= Date::toSql())
-        {
-            return true;
-        }
+        // if ($this->get('valid_until')
+        //  && $this->get('valid_until') != '0000-00-00 00:00:00'
+        //  && $this->get('valid_until') <= Date::toSql())
+        // {
+        //     return true;
+        // }
 
         return false;
     }
