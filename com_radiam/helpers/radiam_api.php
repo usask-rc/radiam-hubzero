@@ -7,15 +7,18 @@ namespace Components\Radiam\Helpers;
  */
 class RadiamAPI
 {
-    function __construct($baseurl) {
-        $this->logger = null;
+    function __construct($baseurl, $authtokens, $logger, $userId) {
+
         $this->tokenfile = null;
         $this->baseurl = $baseurl;
+        $this->setLogger($logger);
+        $this->authtokens = $authtokens;
+        $this->userId = $userId;
         $this->headers = array(
             'Content-type: application/json',
             'Accept: application/json'
         );
-        $this->authtokens = [];
+        
         if (isset($this->baseurl)) {
             if (substr($this->baseurl, 0, 4) !== "http") {
                 $this->baseurl = "http://" . $this->baseurl;
@@ -53,12 +56,13 @@ class RadiamAPI
      * @return  boolean?
      */
     public function loadAuthFromFile() {
-        if file_exists($this->tokenfile) {
-            $this->authtokens = json_decode(file_get_contents($f), true);
-            if array_key_exists("access", $this->authtokens) {
-                return true;
-            }
-        }
+        // TODO: uncomment and fix
+        // if (file_exists($this->tokenfile)) {
+        //     $this->authtokens = json_decode(file_get_contents($f), true);
+        //     if array_key_exists("access", $this->authtokens) {
+        //         return true;
+        //     }
+        // }
         return null;
     }
 
@@ -113,11 +117,11 @@ class RadiamAPI
         if ($statusCode != 200) {
             return false;
         } else {
-            $respObj = json_decode($result, true);
+            $respObj = json_decode($result);
             if (isset($respObj->refresh))
-                $this->authtokens["refresh"] = $respObj["refresh"];
+                $this->authtokens["refresh"] = $respObj->refresh;
             if (isset($respObj->access))
-                $this->authtokens["access"] = $respObj["access"];
+                $this->authtokens["access"] = $respObj->access;
             if (isset($this->tokenfile))
                 $this->writeAuthToDb();
             return true;
@@ -224,7 +228,7 @@ class RadiamAPI
         array_push($postHeaders, "Authorization: Bearer " . $this->authtokens["access"]);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Otherwise response=1
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 7); //Timeout after 7 seconds
         curl_setopt($ch, CURLINFO_HEADER_OUT, false);
@@ -263,8 +267,6 @@ class RadiamAPI
             return $response;
         }
     }
-
-
     /**
      * Perform a bulk POST call to the API
      *
@@ -331,11 +333,14 @@ class RadiamAPI
             return $response;
         }
         $deleteHeaders = $this->headers;
-        $deleteHeaders["Authorization"] = "Bearer " . $this->authtokens["access"];
+        array_push($deleteHeaders, "Authorization: Bearer " . $this->authtokens["access"]);
+        
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $deleteHeaders);
-        $result = curl_exec($ch);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); //otherwise 301 error
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "DELETE");
+        
+        $result = curl_exec($ch);
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ($statusCode == 403) {
             $responseJson = json_decode($result);
@@ -493,9 +498,6 @@ class RadiamAPI
     public function createDocument($indexUrl, $body) {
         if ($body == null) {
             return null;
-        }
-        if (gettype($body) == "array") {
-            $body = json_encode($body);
         }
         $indexUrl .= "docs/";
         $createDocumentPost = $this->apiPost($indexUrl, $body);
