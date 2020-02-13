@@ -76,19 +76,18 @@ class RadiamAPI
 
 
     /**
-     * Write auth tokens to a file
-     *
-     * @param  string  $authfile  The authfile path, if it exists
+     * Write auth tokens to database
      */
-    public function writeAuthToFile($authfile = null) {
-        if (!isset($authfile)) {
-            $authfile = $this->tokenfile;
-        }
-        $fp = fopen($authfile, 'w');
-        fwrite($fp, json_encode($this->authtokens));
-        fclose($fp);
-    }
+    public function writeAuthToDb() {
 
+        $db = App::get('db');
+        $sql = "UPDATE `#__radiam_radtokens` 
+                SET `access_token` = '{$this->authtokens['access']}'
+                WHERE `user_id` = '{$this->userId}';";
+
+        $db->setQuery($sql);
+        $db->query();
+    }
 
     /**
      * Make login requests
