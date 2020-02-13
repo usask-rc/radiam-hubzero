@@ -149,9 +149,7 @@ class RadiamAPI
         } else {
             $respObj = json_decode($result);
             if ($respObj->access != null) {
-                file_put_contents('respObj.txt', print_r($respObj->access, true));
                 $this->authtokens["access"] = $respObj->access;
-                $this->writeAuthToDb();
             }
         }
     }
