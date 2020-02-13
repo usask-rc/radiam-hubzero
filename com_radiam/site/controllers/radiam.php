@@ -67,6 +67,7 @@ class Radiam extends SiteController
     public function execute()
     {
         $this->_authorize();
+        $this->_loadConfig();
 
         $this->registerTask('new', 'edit');
         $this->registerTask('login', 'login');
@@ -489,13 +490,28 @@ class Radiam extends SiteController
             $this->config->set('access-edit-' . $assetType, User::authorise('core.edit' . $at, $asset));
             $this->config->set('access-edit-state-' . $assetType, User::authorise('core.edit.state' . $at, $asset));
             $this->config->set('access-edit-own-' . $assetType, User::authorise('core.edit.own' . $at, $asset));
-
-            // Radiam Config           
-            $db = App::get('db');
-            $sql = "SELECT `configvalue` FROM `#__radiam_radconfigs` WHERE `configname` LIKE '%radiam%url%'";
-            $db->setQuery($sql);
-		    $radiam_url = $db->loadObject()->configvalue;
-            $this->config->set('radiamurl', $radiam_url);
         }
+    }
+    protected function _loadConfig()
+    {
+        // Radiam Config     
+        // TODO: load all config pairs in the config table    
+        $db = App::get('db');
+        $sql = "SELECT `configvalue` FROM `#__radiam_radconfigs` WHERE `configname` LIKE '%radiam%url%'";
+        $db->setQuery($sql);
+        $radiam_url = $db->loadObject()->configvalue;
+        $this->config->set('radiamurl', $radiam_url);
+
+        // $sql = "SELECT `project_id`, `radiam_project_uuid`, `radiam_user_uuid` FROM `#__radiam_radprojects`";
+        // $db->setQuery($sql);
+        // $projects = $db->loadObjectList();
+        // foreach ($projects as $project)
+        // {
+        //     $project_info = array(
+        //         'raidam_project_uuid' => $project->raidam_project_uuid, 
+        //         'radiam_user_uuid' => $project->radiam_user_uuid
+        //     );
+        //     $this->config->set($project->project_id, $project_info);
+        // }
     }
 }
