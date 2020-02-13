@@ -119,7 +119,7 @@ class RadiamAPI
             if (isset($respObj->access))
                 $this->authtokens["access"] = $respObj["access"];
             if (isset($this->tokenfile))
-                $this->writeAuthToFile();
+                $this->writeAuthToDb();
             return true;
         }
     }
@@ -180,7 +180,7 @@ class RadiamAPI
             $responseJson = json_decode($result);
             if ($responseJson["code"] == "token_not_valid") {
                 $this->refreshToken();
-                $this->writeAuthToFile();
+                $this->writeAuthToDb();
                 $response = $this->apiGet($url, ($retries - 1));
                 return $response;
             } else {
@@ -242,7 +242,7 @@ class RadiamAPI
             $responseJson = json_decode($result);
             if ($responseJson["code"] == "token_not_valid") {
                 $this->refreshToken();
-                $this->writeAuthToFile();
+                $this->writeAuthToDb();
                 $response = $this->apiPost($url, $body, ($retries - 1));
                 return $response;
             } else {
@@ -294,7 +294,7 @@ class RadiamAPI
             $responseJson = json_decode($result);
             if ($responseJson["code"] == "token_not_valid") {
                 $this->refreshToken();
-                $this->writeAuthToFile();
+                $this->writeAuthToDb();
                 $response = $this->apiPostBulk($url, $body, ($retries - 1));
                 return $response;
             } else {
@@ -343,7 +343,7 @@ class RadiamAPI
             $responseJson = json_decode($result);
             if ($responseJson["code"] == "token_not_valid") {
                 $this->refreshToken();
-                $this->writeAuthToFile();
+                $this->writeAuthToDb();
                 $response = $this->apiDelete($url, ($retries - 1));
                 return $response;
             } else {
@@ -631,7 +631,7 @@ class RadiamAPI
             $responseJson = json_decode($result);
             if ($responseJson->code == "token_not_valid") {
                 $this->refreshToken();
-                $this->writeAuthToFile();
+                $this->writeAuthToDb();
                 return $this->apiGet($url, ($retries - 1));
             } else {
                 $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
