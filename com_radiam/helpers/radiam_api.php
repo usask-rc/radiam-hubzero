@@ -176,7 +176,7 @@ class RadiamAPI
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ($statusCode == 403) {
             $responseJson = json_decode($result);
-            if ($responseJson["code"] == "token_not_valid") {
+            if ($responseJson->code == "token_not_valid") {
                 $this->refreshToken();
                 $this->writeAuthToDb();
                 $response = $this->apiGet($url, ($retries - 1));
@@ -238,7 +238,7 @@ class RadiamAPI
 
         if ($statusCode == 403) {
             $responseJson = json_decode($result);
-            if ($responseJson["code"] == "token_not_valid") {
+            if ($responseJson->code == "token_not_valid") {
                 $this->refreshToken();
                 $this->writeAuthToDb();
                 $response = $this->apiPost($url, $body, ($retries - 1));
@@ -290,7 +290,7 @@ class RadiamAPI
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ($statusCode == 403) {
             $responseJson = json_decode($result);
-            if ($responseJson["code"] == "token_not_valid") {
+            if ($responseJson->code == "token_not_valid") {
                 $this->refreshToken();
                 $this->writeAuthToDb();
                 $response = $this->apiPostBulk($url, $body, ($retries - 1));
@@ -339,7 +339,7 @@ class RadiamAPI
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ($statusCode == 403) {
             $responseJson = json_decode($result);
-            if ($responseJson["code"] == "token_not_valid") {
+            if ($responseJson->code == "token_not_valid") {
                 $this->refreshToken();
                 $this->writeAuthToDb();
                 $response = $this->apiDelete($url, ($retries - 1));
