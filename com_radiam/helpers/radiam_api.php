@@ -68,9 +68,9 @@ class RadiamAPI
      *
      * @param  string  $message  The message to log
      */
-    public function log($message) {
+    public function logError($message) {
         if (isset($this->logger)) {
-            # TODO: send error message, not sure what php library we're using here
+            $this->logger->error($message);
         }
     }
 
@@ -166,7 +166,7 @@ class RadiamAPI
      */
     public function apiGet($url, $retries = 1) {
         if ($retries <= 0) {
-            $this->log("Ran out of retries to connect to Radiam API");
+            $this->logError("Ran out of retries to connect to Radiam API");
             $response = null;
             return $response;
         }
@@ -184,7 +184,7 @@ class RadiamAPI
                 $response = $this->apiGet($url, ($retries - 1));
                 return $response;
             } else {
-                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
+                $this->logError(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } 
         elseif ($statusCode == 200) {
@@ -201,7 +201,7 @@ class RadiamAPI
             $this->apiGet($url, 1);
         } 
         else {
-            $this->log(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
+            $this->logError(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
             return $response;
         }
@@ -218,7 +218,7 @@ class RadiamAPI
      */
     public function apiPost($url, $body, $retries = 1) {
         if ($retries <= 0) {
-            $this->log("Ran out of retries to connect to Radiam API");
+            $this->logError("Ran out of retries to connect to Radiam API");
             $response = null;
             return $response;
         }
@@ -246,7 +246,7 @@ class RadiamAPI
                 $response = $this->apiPost($url, $body, ($retries - 1));
                 return $response;
             } else {
-                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
+                $this->logError(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } elseif ($statusCode == 200 || $statusCode == 201) {
             $response = json_decode($result);
@@ -260,7 +260,7 @@ class RadiamAPI
             }
             $this->apiPost($url, $body, 1);
         } else {
-            $this->log(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
+            $this->logError(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
             return $response;
         }
@@ -277,7 +277,7 @@ class RadiamAPI
      */
     public function apiPostBulk($url, $body, $retries = 1) {
         if ($retries <= 0) {
-            $this->log("Ran out of retries to connect to Radiam API");
+            $this->logError("Ran out of retries to connect to Radiam API");
             $response = array(null, false);
             return $response;
         }
@@ -298,7 +298,7 @@ class RadiamAPI
                 $response = $this->apiPostBulk($url, $body, ($retries - 1));
                 return $response;
             } else {
-                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
+                $this->logError(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } elseif ($statusCode == 200 || $statusCode == 201) {
             $response = json_decode($result);
@@ -312,7 +312,7 @@ class RadiamAPI
             }
             $this->apiPostBulk($url, $body, 1);
         } else {
-            $this->log(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
+            $this->logError(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
             return $response;
         }
@@ -328,7 +328,7 @@ class RadiamAPI
      */
     public function apiDelete($url, $retries = 1) {
         if ($retries <= 0) {
-            $this->log("Ran out of retries to connect to Radiam API");
+            $this->logError("Ran out of retries to connect to Radiam API");
             $response = null;
             return $response;
         }
@@ -347,7 +347,7 @@ class RadiamAPI
                 $response = $this->apiDelete($url, ($retries - 1));
                 return $response;
             } else {
-                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
+                $this->logError(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } elseif ($statusCode == 200 || $statusCode == 204) {
             $response = true;
@@ -361,7 +361,7 @@ class RadiamAPI
             }
             $this->apiDelete($url, 1);
         } else {
-            $this->log(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
+            $this->logError(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
             return $response;
         }
