@@ -29,11 +29,11 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 	 */
 	protected $_actionMapping = array(
 		'removeit' => 'delete',
-		'moveit'   => 'modify',
-		'renameit' => 'modify',
+		'moveit'   => 'move',
+		'renameit' => 'move',
 		'savedir'  => 'create',
 		'save'     => 'create',
-		'update'   => 'modify'
+		'update'   => 'update'
 	);
 
 	/**
@@ -117,10 +117,14 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 					$this->_saveDir();
 					break;
 				case 'moveit':
+					$this->_move();
+					break;
 				case 'removeit':
-					$this->_moveOrDelete();
+					$this->_delete();
+					break;
 				case 'renameit':
 					$this->_rename();
+					break;	
 			}		
 			// processQueue($this->projectId);
 		}
@@ -156,31 +160,40 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 				$file = "error";
 			}
 			$file = Filesystem::clean(trim($file));
-			$path = $this->_joinPaths($file);
-			if (is_file($path))
-			{	
-				$this->action = 'update';
+			$path = $this->_getFullPath($file);
+			
+			// File existed, update it
+			if (is_file($path)) {	
+				// $this->action = 'update';
+				$this->_updateFile($path);
 			}
-			$this->_writeToDb($this->projectId, $path, $this->_actionMapping[$this->action]);
+			else {
+				$this->_writeToDb($this->projectId, $path, $this->_actionMapping[$this->action]);
+			}
 		}
 		else
 		{	
 			// Regular upload
 			$upload = Request::getArray('upload', '', 'files');
-			for ($i=0; $i < count($upload['name']); $i++)
-			{	
+			for ($i=0; $i < count($upload['name']); $i++) {	
 				$file = $upload['name'][$i];
 				$file = Filesystem::clean(trim($file));
-				$path = $this->_joinPaths($file);
-				if (is_file($path))
-				{	
-					$this->action = 'update';
+				$path = $this->_getFullPath($file);
+				if (is_file($path)) {	
+					// File existed, update it
+					// $this->action = 'update';
+					$this->_updateFile($path);
 				}
-				$this->_writeToDb($this->projectId, $path, $this->_actionMapping[$this->action]);
+				else {
+					$this->_writeToDb($this->projectId, $path, $this->_actionMapping[$this->action]);
+				}
+				// TODO: check if we need this
+				// // Uploading new file means modifying the parent path
+				// $parentPath = dirname($path);
+				// $this->_writeToDb($this->projectId, $parentPath, $this->_actionMapping['update']);
 			}
 		}
 	}
-
 
 	/**
 	 * Write to radiamqueue table for creating directory action
@@ -196,7 +209,7 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 		{
 			return;
 		}
-		$path = $this->_joinPaths($newDir);
+		$path = $this->_getFullPath($newDir);
 		$this->_writeToDb($this->projectId, $path, $this->_actionMapping[$this->action]);
 	}
 
@@ -205,7 +218,58 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 	 *
 	 * @return  void  
 	 */
-	protected function _moveOrDelete()
+	protected function _move()
+	{	
+		$items = $this->_sortIncoming(); 
+		if (!empty($items))
+		{
+			foreach ($items as $element)
+			{
+				foreach ($element as $type => $item)
+				{
+					// Get type and item name
+					break;
+				} 
+
+				// Must have a name
+				if (trim($item) == '')
+				{
+					continue;
+				}
+				$srcPath = $this->_getFullPath($item);
+				$srcLocalPath = $this->_getLocalPath($item);
+
+				$newpath = trim(urldecode(Request::getString('newpath', '')), DS);
+				$newdir  = Request::getString('newdir', '');
+				$target  = $newdir ? $newdir : $newpath;
+				$newItemPath = $target ? $target . DS . $item : $item; 
+				$destPath = $this->path . DS. $newItemPath;
+
+				if ($type === 'folder') {
+					$itemsInDir = $this->repo->filelist(array(
+						'subdir'		   => $srcLocalPath,
+						'sortby'           => 'localpath',
+						'showFullMetadata' => false,
+						'getParents'       => true,
+						'getChildren'      => true,
+						'dirsOnly'         => false,
+						'recursive'        => true
+					));
+					foreach ($itemsInDir as $i) {
+						$this->_writeToDb($this->projectId, $i->get('fullPath'), $this->_actionMapping[$this->action], $destPath . DS . $i->get('name'));
+					}
+				}
+				$this->_writeToDb($this->projectId, $srcPath, $this->_actionMapping[$this->action], $destPath);
+			}
+		}
+	}
+
+	/**
+	 * Write to radiamqueue table for moving or deleting file(s) and folder(s) action
+	 *
+	 * @return  void  
+	 */
+	protected function _delete()
 	{	
 		$items = $this->_sortIncoming();
 		if (!empty($items))
@@ -223,8 +287,23 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 				{
 					continue;
 				}
-				$path = $this->_joinPaths($item);
-				$this->_writeToDb($this->projectId, $path, $this->_actionMapping[$this->action]);
+				$srcPath = $this->_getFullPath($item);
+				$srcLocalPath = $this->_getLocalPath($item);
+				if ($type === 'folder') {
+					$itemsInDir = $this->repo->filelist(array(
+						'subdir'		   => $srcLocalPath,
+						'sortby'           => 'localpath',
+						'showFullMetadata' => false,
+						'getParents'       => true,
+						'getChildren'      => true,
+						'dirsOnly'         => false,
+						'recursive'        => true
+					));
+					foreach ($itemsInDir as $i) {
+						$this->_writeToDb($this->projectId, $i->get('fullPath'), $this->_actionMapping[$this->action]);
+					}
+				}
+				$this->_writeToDb($this->projectId, $srcPath, $this->_actionMapping[$this->action]);
 			}
 		}
 	}
@@ -236,13 +315,56 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 	 */
 	protected function _rename()
 	{	
-		$item = Request::getString('oldname', '');
+		$oldName = Request::getString('oldname', '');
+		$newName = Request::getString('newname', '');
+		$type = Request::getString('type', 'file');
+		$srcPath = $this->_getFullPath($oldName);
+		$destPath = $this->_getFullPath($newName);
 
-		if (!empty($item))
-		{
-			$path = $this->_joinPaths($item);
-			$this->_writeToDb($this->projectId, $path, $this->_actionMapping[$this->action]);
+		if (!empty($oldName)) {
+			if ($type === 'folder') {
+				$srcLocalPath = $this->_getLocalPath($oldName);
+				$pos = strrpos($srcLocalPath, $oldName);
+				if ($pos !== false) {
+					$destLocalPath = substr_replace($srcLocalPath, $newName, $pos, strlen($oldName));
+				}
+				else {
+					$destLocalPath = null;
+				}
+				$itemsInDir = $this->repo->filelist(array(
+					'subdir'		   => $srcLocalPath,
+					'sortby'           => 'localpath',
+					'showFullMetadata' => false,
+					'getParents'       => true,
+					'getChildren'      => true,
+					'dirsOnly'         => false,
+					'recursive'        => true
+				));
+				foreach ($itemsInDir as $i) {
+					// replace the first occurence of the oldName string
+					$itemSrcLocalPath = $i->get('localPath');
+					$pos = strpos($itemSrcLocalPath, $srcLocalPath);
+					if ($pos !== false) {
+						$itemDestLocalPath = substr_replace($itemSrcLocalPath, $destLocalPath, $pos, strlen($srcLocalPath));
+					}
+					else {
+						$itemDestLocalPath = null;
+					}
+					$this->_writeToDb($this->projectId, $i->get('fullPath'), $this->_actionMapping[$this->action], $this->path . DS . $itemDestLocalPath);
+				}
+			}
+			$this->_writeToDb($this->projectId, $srcPath, $this->_actionMapping[$this->action], $destPath);
 		}
+		else {
+			return false;
+		}
+	}
+
+	protected function _updateFile($path) 
+	{
+		// On the radiam server, the old file deleted and a new one with the same name created
+		$this->_writeToDb($this->projectId, $path, 'delete');
+		$this->_writeToDb($this->projectId, $path, 'create');
 	}
 
 	/**
@@ -250,20 +372,26 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 	 *
 	 * @return  void  
 	 */
-	protected function _writeToDb($projectId, $path, $action)
-	{
-		$sql_test = "INSERT INTO `#__radiam_radqueue` (`project_id`, `path`, `action`, `created`)
-					 VALUES ('{$projectId}', '{$path}', '{$action}', now())";
+	protected function _writeToDb($projectId, $srcPath, $action, $destPath=null)
+	{	
+		if ($destPath != null) {
+			$sql_test = "INSERT INTO `#__radiam_radqueue` (`project_id`, `src_path`, `dest_path`, `action`, `created`)
+						 VALUES ('{$projectId}', '{$srcPath}', '{$destPath}', '{$action}', now())";
+		}
+		else {
+			$sql_test = "INSERT INTO `#__radiam_radqueue` (`project_id`, `src_path`, `action`, `created`)
+						 VALUES ('{$projectId}', '{$srcPath}', '{$action}', now())";
+		}
 		$this->db->setQuery($sql_test);
 		$this->db->execute();
 	}
 
 	/**
-	 * Helper function: combine paths for the file or folder that caused the event
+	 * Helper function: get full path of selected items (file or folder)
 	 *
 	 * @return  string   
 	 */
-	protected function _joinPaths($objectName) {
+	protected function _getFullPath($objectName) {
 		if (empty($this->subdir)) 
 		{
 			$path = $this->path . DS. $objectName;	
@@ -271,6 +399,23 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 		else 
 		{
 			$path = $this->path . DS . $this->subdir . DS. $objectName;	
+		}
+		return $path;
+	}
+
+	/**
+	 * Helper function: get relative path 
+	 *
+	 * @return  string   
+	 */
+	protected function _getLocalPath($objectName) {
+		if (empty($this->subdir)) 
+		{
+			$path = $objectName;	
+		}
+		else 
+		{
+			$path = $this->subdir . DS. $objectName;	
 		}
 		return $path;
 	}
@@ -367,7 +512,7 @@ function processQueue($projectId)
 function getRadiamQueue($projectId)
 {
 	$db = App::get('db');
-	$sql = "SELECT `id`, `project_id`, `path`, `action`
+	$sql = "SELECT `id`, `project_id`, `src_path`, `action`
 			FROM `#__radiam_radqueue`
 			WHERE `project_id` = '{$projectId}'
 			ORDER BY `created` ASC";
