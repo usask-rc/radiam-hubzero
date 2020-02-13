@@ -130,37 +130,29 @@ class RadiamAPI
      * Refresh an auth token
      */
     public function refreshToken() {
-        if (!isset($this->osf)) {
-            $body = array("refresh" => $this->authtokens["refresh"]);
-            $jsonString = json_encode($body);
-            $ch = curl_init($this->endpoints->refresh);
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonString);
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers);
-            $result = curl_exec($ch);
-            $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            if ($statusCode != 200) {
-                $this->log(sprintf("Unable to refresh auth token %s:\n%s\n", $statusCode, $result));
-            } else {
-                $this->writeAuthToFile();
-                $respObj = json_decode($result, true);
-                if ($respObj->access != null) {
-                    $this->authtokens["access"] = $respObj["access"];
-                }
-            }
+
+        $body = array("refresh" => $this->authtokens["refresh"]);           
+        $ch = curl_init($this->endpoints["refresh"]);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Otherwise reponse=1
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 7); //Timeout after 7 seconds
+        curl_setopt($ch, CURLINFO_HEADER_OUT, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $this->headers);
+
+        $result = curl_exec($ch);
+        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($statusCode != 200) {
+            $this->logError(sprintf("Unable to refresh auth token %s:\n%s\n", $statusCode, $result));
         } else {
-            $ch = curl_init($this->baseurl . "/api/useragents/" . $this->useragent . "/token/new");
-            $result = curl_exec($ch);
-            $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-            if ($statusCode != 200) {
-                $this->log(sprintf("Unable to refresh auth token %s:\n%s\n", $statusCode, $result));
-            } else {
-                $respObj = json_decode($result, true);
-                if ($respObj->access != null) {
-                    $this->authtokens["access"] = $respObj["access"];
-                }
+            $respObj = json_decode($result);
+            if ($respObj->access != null) {
+                file_put_contents('respObj.txt', print_r($respObj->access, true));
+                $this->authtokens["access"] = $respObj->access;
+                $this->writeAuthToDb();
             }
         }
     }
