@@ -565,11 +565,11 @@ class RadiamAPI
      */
     public function searchEndpointByFieldname($indexUrl, $target, $fieldname) {
         if ($fieldname == null) {
-            $this->log($target . " field name is missing for endpoint search");
+            $this->logError($target . " field name is missing for endpoint search");
             return null;
         }
         if ($target == null) {
-            $this->log($fieldname . " argument is missing for endpoint search");
+            $this->logError($fieldname . " argument is missing for endpoint search");
             return null;
         }
         $indexUrl .= "search/";
@@ -589,7 +589,7 @@ class RadiamAPI
      */
     public function searchEndpointByName($endpoint, $name, $namefield = "name") {
         if ($name == null) {
-            $this->log("Name argument is missing for endpoint search");
+            $this->logError("Name argument is missing for endpoint search");
             return null;
         }
         if (substr($endpoint, 0, 4) === "http") {
@@ -598,7 +598,7 @@ class RadiamAPI
             if (isset($this->endpoints["endpoint"])) {
                 $endpoint_url = $this->endpoints["endpoint"];
             } else {
-                $this->log($endpoint . " is neither an endpoint URL nor a well known endpoint");
+                $this->logError($endpoint . " is neither an endpoint URL nor a well known endpoint");
                 return null;
             }
         }
@@ -617,7 +617,7 @@ class RadiamAPI
      */
     public function apiGetStatusCode($url, $retries = 1) {
         if ($retries <= 0) {
-            $this->log("Ran out of retries");
+            $this->logError("Ran out of retries");
             return null;
         }
         $get_headers = $this->headers;
@@ -634,7 +634,7 @@ class RadiamAPI
                 $this->writeAuthToDb();
                 return $this->apiGet($url, ($retries - 1));
             } else {
-                $this->log(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
+                $this->logError(sprintf("Unauthorized request %s:\n%s\n", $statusCode, $result));
             }
         } else {
             return $statusCode;
