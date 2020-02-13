@@ -20,7 +20,7 @@ class RadiamAPI
             if (substr($this->baseurl, 0, 4) !== "http") {
                 $this->baseurl = "http://" . $this->baseurl;
             }
-            if (substr($this->baseurl, 0, -1) !== "/") {
+            if (substr($this->baseurl, -1, 1) !== "/") {
                 $this->baseurl = $this->baseurl . "/";
             }
             $this->endpoints = array(
