@@ -57,7 +57,7 @@ class QueueHelper
         } 
 
         $tokens = getToken($userId);
-        
+
         if ($tokens == null) {
             $this->logger->error('Please login first.');
             exit;
@@ -164,13 +164,13 @@ class QueueHelper
                 // TODO: fix getToken bug
                 // $token = $this->getToken();
                 // $access_token = $token->get('access_token');
-                tryConnectionInWorker($this->radiamAPI, $this->config[5], $pathIn, $this->logger, $metadata);
+                tryConnectionInWorker($this->radiamAPI, $this->project_config, $pathIn, $this->logger, $metadata);
                 // TODO: check if need set_last_crawl.add
             }
         }
         while (count($this->dSet) != 0) {
             $pathDe = array_pop($this->dSet);
-            tryConnectionInWorker($this->radiamAPI, $this->config[5], $pathDe, $this->logger);
+            tryConnectionInWorker($this->radiamAPI, $this->project_config, $pathDe, $this->logger);
             // TODO: check if need set_last_crawl.add
             $this->logger->info("Moved {$what}: from {$srcPath} to {$destPath}");
         }
@@ -209,7 +209,7 @@ class QueueHelper
         }
         while (count($this->dSet) != 0) {
             $pathDe = array_pop($this->dSet);
-            tryConnectionInWorker($this->radiamAPI, $this->config[5], $pathDe, $this->logger);
+            tryConnectionInWorker($this->radiamAPI, $this->project_config, $pathDe, $this->logger);
             // TODO: check if need set_last_crawl.add
             $this->logger->info("Deleted {$what}: {$event->src_path}");
             list($metaStatus, $parentPath) = updatePath($event->src_path, $this->config, $this->project_key, $this->radiamAPI, $this->project_config, $this->logger);
@@ -243,7 +243,7 @@ class QueueHelper
                 // TODO: fix getToken bug
                 // $token = $this->getToken();
                 // $access_token = $token->get('access_token');
-                tryConnectionInWorker($this->radiamAPI, $this->config[5], $pathIn, $this->logger, $metadata);
+                tryConnectionInWorker($this->radiamAPI, $this->project_config, $pathIn, $this->logger, $metadata);
                 // TODO: check if need set_last_crawl.add
                 $this->logger->info("{$action} {$what}: {$path}");
                 // TODO: delete this, for debug purpose
