@@ -111,7 +111,6 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 			
 			// TODO: move this 
 			$config['location']['id'] = 'b3271c0c-7794-43bb-980b-870887bd2414';
-			file_put_contents('config.txt', print_r($config, true));
 		}
 		return array($config, true);
 	}
