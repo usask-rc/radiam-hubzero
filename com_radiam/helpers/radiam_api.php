@@ -516,9 +516,9 @@ class RadiamAPI
         if ($body == null) {
             return null;
         }
-        if (gettype($body) == "array") {
-            $body = json_encode($body);
-        }
+        // if (gettype($body) == "array") {
+        //     $body = json_encode($body);
+        // }
         $indexUrl .= "docs/";
         $createDocumentPost = $this->apiPostBulk($indexUrl, $body);
         return $createDocumentPost;
