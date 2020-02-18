@@ -195,8 +195,8 @@ class RadiamAPI
         } 
         elseif ($statusCode == 429) {
             $responseJson = json_decode($result);
-            if (array_key_exists("retry-after", $responseJson)) {
-                sleep(((int) $responseJson["retry-after"]) + 1);    
+            if (property_exists($responseJson, "retry-after")) {
+                sleep(((int) $responseJson->{"retry-after"}) + 1);    
             } else {
                 sleep(4);
             }
@@ -255,8 +255,8 @@ class RadiamAPI
             return $response;
         } elseif ($statusCode == 429) {
             $responseJson = json_decode($result);
-            if (array_key_exists("retry-after", $responseJson)) {
-                sleep(((int) $responseJson["retry-after"]) + 1);    
+            if (property_exists($responseJson, "retry-after")) {
+                sleep(((int) $responseJson->{"retry-after"}) + 1);    
             } else {
                 sleep(4);
             }
@@ -305,8 +305,8 @@ class RadiamAPI
             return $response;
         } elseif ($statusCode == 429) {
             $responseJson = json_decode($result);
-            if (array_key_exists("retry-after", $responseJson)) {
-                sleep(((int) $responseJson["retry-after"]) + 1);    
+            if (property_exists($responseJson, "retry-after")) {
+                sleep(((int) $responseJson->{"retry-after"}) + 1);    
             } else {
                 sleep(4);
             }
@@ -358,7 +358,7 @@ class RadiamAPI
         } elseif ($statusCode == 429) {
             $responseJson = json_decode($result);
             if (array_key_exists("retry-after", $responseJson)) {
-                sleep(((int) $responseJson["retry-after"]) + 1);    
+                sleep(((int) $responseJson->{"retry-after"}) + 1);    
             } else {
                 sleep(4);
             }
