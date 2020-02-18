@@ -176,6 +176,12 @@ class RadiamAPI
         array_push($getHeaders, "Authorization: Bearer " . $this->authtokens["access"]);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $getHeaders);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 7); //Timeout after 7 seconds
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); //otherwise 301 error
+        curl_setopt($ch, CURLINFO_HEADER_OUT, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
         $result = curl_exec($ch);
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ($statusCode == 403) {
