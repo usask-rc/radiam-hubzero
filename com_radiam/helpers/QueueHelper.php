@@ -542,8 +542,8 @@ function getDirItemsCount($directory)
 // TODO: move this outside queuehelper
 function agentCheckin($API, $config, $logger) 
 {   
-    $defaultLocationType = "location.type.server";
-    $version = '0.1';
+    $defaultLocationType = "location.type.hubzero";
+    $version = "1.2.0";
     $host = $config['radiam_host_url'];
     foreach ($config['projects'] as $project_key) {
         if (array_key_exists('radiam_project_uuid', $config[$project_key]) and $config[$project_key]['radiam_project_uuid']) {
