@@ -593,10 +593,10 @@ class RadiamAPI
             return null;
         }
         if (substr($endpoint, 0, 4) === "http") {
-            $endpoint_url = $endpoint;
+            $endpointUrl = $endpoint;
         } else {
-            if (isset($this->endpoints["endpoint"])) {
-                $endpoint_url = $this->endpoints["endpoint"];
+            if (isset($this->endpoints[$endpoint])) {
+                $endpointUrl = $this->endpoints[$endpoint];
             } else {
                 $this->logError($endpoint . " is neither an endpoint URL nor a well known endpoint");
                 return null;
