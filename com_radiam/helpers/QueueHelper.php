@@ -53,14 +53,14 @@ class QueueHelper
         $userId = $this->getProjectOwner($project_key);
         if ($userId == null) {
             $this->logger->error('Project does not exist.');
-            exit;
+            throw new Exception();
         } 
 
         $tokens = getToken($userId);
 
         if ($tokens == null) {
             $this->logger->error('Please login first.');
-            exit;
+            throw new Exception();
         } 
 
         $tokens_array = array (
