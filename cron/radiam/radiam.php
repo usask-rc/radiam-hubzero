@@ -93,6 +93,14 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 			$db->query();
 		}
 
+		if (!array_key_exists('location_name', $config)) {
+			$config['location_name'] = gethostname();
+			$sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`) 
+					VALUES ('location_name', '{$config['location_name']}', now());";
+			$db->setQuery($sql);
+			$db->query();
+		}
+
 		$sql = "SELECT `project_id`, `radiam_project_uuid`, `radiam_user_uuid` FROM `#__radiam_radprojects`";
 		$db->setQuery($sql);
 		$projects = $db->loadObjectList();
@@ -105,13 +113,9 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 			);
 			$config[$project->project_id] = $project_info;
 			array_push($config['projects'], $project->project_id);
-
-			// TODO: move this to checkin function
-			$config[$project->project_id]['endpoint'] = 'https://dev2.radiam.ca/api/projects/' . $config[$project->project_id]['radiam_project_uuid'] . '/';
-			
-			// TODO: move this 
-			$config['location']['id'] = 'b3271c0c-7794-43bb-980b-870887bd2414';
 		}
+		// file_put_contents("config.txt", print_r($config, true));
+
 		return array($config, true);
 	}
 

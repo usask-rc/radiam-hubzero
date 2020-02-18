@@ -46,7 +46,7 @@ class QueueHelper
         $this->project_key = $project_key;
         $this->logger = $logger;
         $this->config = $config;
-        $this->project_config = $this->config[$this->project_key];
+        
 
         $this->logger->info("Construct the queue processor for project {$project_key}");
         
@@ -74,6 +74,15 @@ class QueueHelper
     {	
         $this->logger->info('Start processing file event queue');
         // $this->_loadConfig();
+
+        list($this->config, $checkinStatus, $errMessage) = agentCheckin($this->radiamAPI, $this->config, $this->logger);
+        $this->project_config = $this->config[$this->project_key];
+        // file_put_contents("this_config", print_r($this->config, true));
+        
+        if (!$checkinStatus) {
+            $this->logger->error($errMessage);
+            exit();
+        }
 
         $this->_db = App::get('db');
         $radiamQueue = $this->getRadiamQueue();
@@ -238,6 +247,8 @@ class QueueHelper
             {
                 $metadata = getFileMeta($pathIn, $this->config);
             }
+            // file_put_contents("metadata", print_r($metadata, true));
+            
             if ($metadata != null)
             {   
                 // TODO: fix getToken bug
@@ -343,7 +354,10 @@ function tryConnectionInWorker($radiamAPI, $project_config, $path, $logger, $met
     while (true) 
     {
         try {
+            $logger->info("Before calling search endpoint by path");
             $res = $radiamAPI->searchEndpointByPath($project_config['endpoint'], $path);
+            $logger->info("After calling search endpoint by path");
+            // file_put_contents("endpoint_path_result", print_r($res, true));
             if ($res != null) 
             {
                 if ($metadata != null)
@@ -371,6 +385,8 @@ function tryConnectionInWorker($radiamAPI, $project_config, $path, $logger, $met
             }     
             return;
         } catch (\Exception $e) {
+            // file_put_contents("e", print_r($e, true));
+            
             sleep(10);
         }
     }
@@ -443,10 +459,11 @@ function getFileMeta($path, $config, $project_key=null)
             "indexed_by" => $owner,
             "indexing_date" => $indextime_utc,
             "type" => "file",
-            "location" => $config['location']['id'],
+            "location" => $config['location_id'],
             "agent" => $config['agent_id']
         );
     } catch (\Exception $e) {
+        // file_put_contents("e", print_r($e, true));
         return false;
     }
     return $filemeta; 
@@ -522,14 +539,106 @@ function getDirItemsCount($directory)
     return array($filecount, $itemcount);
 }
 
-function generateUuid()
-{
-    return sprintf(
-        '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-        mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-        mt_rand(0, 0xffff),
-        mt_rand(0, 0x0fff) | 0x4000,
-        mt_rand(0, 0x3fff) | 0x8000,
-        mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-    );
+// TODO: move this outside queuehelper
+function agentCheckin($API, $config, $logger) 
+{   
+    $defaultLocationType = "location.type.server";
+    $version = '0.1';
+    $host = $config['radiam_host_url'];
+    foreach ($config['projects'] as $project_key) {
+        if (array_key_exists('radiam_project_uuid', $config[$project_key]) and $config[$project_key]['radiam_project_uuid']) {
+            $config[$project_key]['endpoint'] = $host . "api/projects/" . $config[$project_key]['radiam_project_uuid'] . "/";
+            $res = $API->searchEndpointByName('projects', $config[$project_key]['radiam_project_uuid'], "id");
+            if (!$res or !isset($res->results) or count($res->results) == 0) {
+                return array($config, false, "Radiam project id {$config[$project_key]['radiam_project_uuid']} does not appear to exist - was it deleted?");
+            }
+        }
+        else {
+            return array($config, false, "No radiam project id provided. Please set it up in the Radiam Component page.");
+        }
+
+        // TODO: add assert function for agent_id and location_name
+
+        // Create the location if needed
+        if (!array_key_exists('location_id', $config)) {
+            $res = $API->searchEndpointByName('locations', $config['location_name'], "display_name");
+            // file_put_contents("locations_result", print_r($res, true));
+            if ($res and isset($res->results) and count($res->results) > 0) {
+                $config['location_id'] = $res->results[0]->id;
+            }
+            else {
+                $res = $API->searchEndpointByName('locationtypes', $defaultLocationType, "label");
+                // file_put_contents("locationtypes_result", print_r($res, true));
+                if ($res and isset($res->results) and count($res->results) > 0) {
+                    // file_put_contents("locationtypes_result_results", print_r($res->results, true));
+                    $locationId = $res->results[0]->id;
+                }
+                else {
+                    return array($config, false, "Could not look up location type ID for {$defaultLocationType}");
+                }
+                $hostname = gethostname();
+                $newLocation = array(
+                    "display_name" => $config['location_name'],
+                    "host_name"    => $hostname,
+                    "location_type"=> $locationId
+                );
+                $res = $API->createLocation($newLocation);
+                // file_put_contents("create_location_result",print_r($res, true));
+                if ($res and isset($res->id)) {
+                    $config['location_id'] = $res->id;
+                }
+                else {
+                    return array($config, false, "Tried to create a new location, but the API call failed.");
+                }
+            }
+            // Write the location id to the radconfig table
+            $db = App::get('db');
+            $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`) 
+                    VALUES ('location_id', '{$config['location_id']}', now());";
+            $db->setQuery($sql);
+            $db->query();
+        }
+        // Create the user agent if needed
+        $res = $API->searchEndpointByName('useragents', $config['agent_id'], "id");
+        if (!$res or !isset($res->results) or count($res->results) == 0) {
+            $logger->info("Useragent {$config['agent_id']} was not found in the remote system; creating it now.");
+            $res = $API->getLoggedInUser();
+
+            if ($res and isset($res->id)) {
+                $currentUserId = $res->id;
+                $projectConfigList = array();
+                //TODO: add info into project config list
+                // for p in config['projects']['project_list']:
+                //     project_config_list.append({
+                //         "project": config[p]['name'],
+                //         "config": {"rootdir": config[p]['rootdir']}
+                //     })
+                $newAgent = array(
+                    "id" => $config['agent_id'],
+                    "user" => $currentUserId,
+                    "version" => $version,
+                    "location" => $config['location_id'],
+                    "project_config_list" => $projectConfigList
+                );
+                $logger->debug(sprintf("JSON: %s", json_encode($newAgent)));
+                $res = $API->createUserAgent($newAgent);
+                // file_put_contents("create_user_agent_result",print_r($res, true));
+                if (!$res or !isset($res->id)) {
+                    return array($config, false, "Tried to create a new user agent, but the API call failed.");
+                }
+                else {
+                    $logger->info("User agent {$config['agent_id']} created.");
+                }
+            }
+            else {
+                $logger->error("Could not determine current logged in user to create user agent.");
+                return array($config, false, "Could not determine current logged in user to create user agent.");
+            }
+        }
+        else {
+            $logger->debug("User agent {$config['agent_id']} appears to exist.");
+        }
+    }
+    return array($config, true, null);
 }
+
