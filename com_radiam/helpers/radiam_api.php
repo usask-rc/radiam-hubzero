@@ -426,9 +426,9 @@ class RadiamAPI
         if ($body == null) {
             return null;
         }
-        if (gettype($body) == "array") {
-            $body = json_encode($body);
-        }
+        // if (gettype($body) == "array") {
+        //     $body = json_encode($body);
+        // }
         $checkinPost = $this->apiPost($checkinUrl, $body);
         return $checkinPost;
     }
@@ -444,9 +444,9 @@ class RadiamAPI
         if ($body == null) {
             return null;
         }
-        if (gettype($body) == "array") {
-            $body = json_encode($body);
-        }
+        // if (gettype($body) == "array") {
+        //     $body = json_encode($body);
+        // }
         $createProjectPost = $this->apiPost($this->endpoints["projects"], $body);
         return $createProjectPost;
     }
@@ -462,9 +462,9 @@ class RadiamAPI
         if ($body == null) {
             return null;
         }
-        if (gettype($body) == "array") {
-            $body = json_encode($body);
-        }
+        // if (gettype($body) == "array") {
+        //     $body = json_encode($body);
+        // }
         $createLocationPost = $this->apiPost($this->endpoints["locations"], $body);
         return $createLocationPost;
     }
@@ -480,9 +480,9 @@ class RadiamAPI
         if ($body == null) {
             return null;
         }
-        if (gettype($body) == "array") {
-            $body = json_encode($body);
-        }
+        // if (gettype($body) == "array") {
+        //     $body = json_encode($body);
+        // }
         $createUserAgentPost = $this->apiPost($this->endpoints["useragents"], $body);
         return $createUserAgentPost;
     }
