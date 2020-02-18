@@ -173,7 +173,7 @@ class RadiamAPI
             return $response;
         }
         $getHeaders = $this->headers;
-        $getHeaders["Authorization"] = "Bearer " . $this->authtokens["access"];
+        array_push($getHeaders, "Authorization: Bearer " . $this->authtokens["access"]);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $getHeaders);
         $result = curl_exec($ch);
@@ -282,7 +282,7 @@ class RadiamAPI
             return $response;
         }
         $postHeaders = $this->headers;
-        $postHeaders["Authorization"] = "Bearer " . $this->authtokens["access"];
+        array_push($postHeaders, "Authorization: Bearer " . $this->authtokens["access"]);
         $jsonString = json_encode($body);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -621,7 +621,7 @@ class RadiamAPI
             return null;
         }
         $get_headers = $this->headers;
-        $get_headers["Authorization"] = "Bearer " + $this->authtokens["access"];
+        array_push($get_headers, "Authorization: Bearer " . $this->authtokens["access"]);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $get_headers);
         $result = curl_exec($ch);
