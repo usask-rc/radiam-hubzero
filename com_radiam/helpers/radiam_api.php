@@ -613,6 +613,12 @@ class RadiamAPI
         return $getEndpointUrl;
     }
 
+    public function searchEndpoint($indexUrl) {
+        $indexUrl .= "search/";
+        $body = array("query" => array("bool" => array("filter" => array())));
+        $searchPost = $this->apiPost($indexUrl, $body);
+        return $searchPost;
+    }
 
     /**
      * Get the API status code
