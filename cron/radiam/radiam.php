@@ -109,12 +109,20 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		$db->setQuery($sql);
 		$projects = $db->loadObjectList();
 		$config['projects'] = array();
+
+		require_once Component::path('com_projects') . DS . 'tables' . DS . 'project.php';
+		require_once Component::path('com_projects') . DS . 'helpers' . DS . 'html.php';
+		$database = App::get('db');
+		$obj = new \Components\Projects\Tables\Project($database);
 		foreach ($projects as $project)
 		{
 			$project_info = array(
 				'radiam_project_uuid' => $project->radiam_project_uuid, 
 				'radiam_user_uuid' => $project->radiam_user_uuid
 			);
+			$project_alias = $obj->getAlias($project->project_id);
+			$path = \Components\Projects\Helpers\Html::getProjectRepoPath(strtolower($project_alias), 'files');
+			$project_info['rootdir'] = $path;
 			$config[$project->project_id] = $project_info;
 			array_push($config['projects'], $project->project_id);
 		}
