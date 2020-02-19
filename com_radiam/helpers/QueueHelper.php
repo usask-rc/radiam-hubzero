@@ -517,7 +517,7 @@ function getDirMeta($path, $config)
             "indexed_by" => $owner,
             "indexing_date" => $indextime_utc,
             "type" => "directory",
-            "location" => $config['location']['id'],
+            "location" => $config['location_id'],
             "agent" => $config['agent_id']
         );
     } catch (\Exception $e) {
