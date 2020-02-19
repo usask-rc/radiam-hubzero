@@ -17,6 +17,9 @@ use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
 use Components\Projects\Models\Orm\Project;
+use FilesystemIterator;
+use SplQueue;
+
 require_once \Component::path('com_projects') . DS . 'models' . DS . 'orm' . DS . 'project.php';
 
 // No direct access
