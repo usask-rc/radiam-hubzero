@@ -84,6 +84,8 @@ class QueueHelper
             exit();
         }
 
+        fullRun($this->radiamAPI, $this->config, $this->logger);
+
         $this->_db = App::get('db');
         $radiamQueue = $this->getRadiamQueue();
         if ($radiamQueue !== false)
