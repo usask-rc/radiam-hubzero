@@ -647,3 +647,126 @@ function agentCheckin($API, $config, $logger)
     return array($config, true, null);
 }
 
+function fullRun($API, $config, $logger)
+{   
+    $logger->info("Inside full run");
+    $queue = new SplQueue();
+    while (true) {
+        try {
+            foreach($config['projects'] as $project_key) {
+                $res = $API->searchEndpoint($config[$project_key]["endpoint"]);
+                if ($res->count > 0) {
+                    return;
+                }
+                $queue->push($config[$project_key]['rootdir']);
+                $files = array();
+                $bulkdata = array();
+                $bulksize = 0;
+
+                // nested function 
+                $postData = function($metadata, $files, $entry, $bulksize, $bulkdata) use($API, $logger, $config, $project_key)
+                {
+                    // TODO: in python agent, this is global variable, check it 
+                    $postDataLimit = 1000000;
+                    $repsText = null;
+                    $status = false;
+                    if ($metadata == null or gettype($metadata) == "array" and count($metadata) == 0) {       
+                    }
+                    else {
+                        array_push($files, $entry);
+                        $metasize = mb_strlen(json_encode($metadata), "8bit");
+                        if (($metasize + $bulksize) > $postDataLimit) {
+                            list($repsText, $status) = tryConnectionInWorkerBulk($API, $config[$project_key], $logger, $bulkdata);
+                            $bulkdata = array();
+                            array_push($bulkdata, $metadata);
+                            $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
+                        }
+                        else {
+                            array_push($bulkdata, $metadata);
+                            $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
+                        }
+                    }
+                    return array($bulkdata, $bulksize, $repsText, $status);
+                };
+                while (!$queue->isEmpty()) {
+                    try {
+                        $path = $queue->pop();
+                        try {
+                            $fs = new FilesystemIterator($path);
+                            // entry includes the filename
+                            foreach ($fs as $entry) {
+                                if ($entry->isDir()) {
+                                    $queue->push($entry->getPathname());
+                                    $metadata = getDirMeta($entry->getPathname(), $config);
+                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
+                                }
+                                else if ($entry->isFile()) {
+                                    $metadata = getFileMeta($entry->getPathname(), $config, $project_key);
+                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
+                                }
+                            }
+                        } catch(\Exception $e) {
+                            $logger->warning($e);
+                        }
+                    } catch(\Exception $e) {
+                        $logger->warning($e);
+                        break;
+                    }
+                }
+                if ($bulkdata == null or gettype($bulkdata) == "array" and count($bulkdata) == 0) {
+                    $logger->info("No files to index on project {$project_key}");
+                    // TODO: fill it up
+                    $logger->info("Agent has added ");
+                    return array(null, 200);
+                }
+                else {
+                    list($repsText, $status) = tryConnectionInWorkerBulk($API, $config[$project_key], $logger, $bulkdata);
+                }
+                if ($status) {
+                    $logger->info("Finished indexing files to project {$project_key}");
+                    // TODO: fill it up
+                    $logger->info("Agent has added ");
+                }
+                else {
+                    return array($respText, $status);
+                }
+            }
+            return array($respText, $status);
+        } catch (\Exception $e) {
+            sleep(10);
+        }
+    }
+}
+
+function tryConnectionInWorkerBulk($radiamAPI, $project_config, $logger, $metadata)
+{   
+    $logger->info("In try connection in worker bulk function");
+    
+    while (true) 
+    {
+        try {
+            list($respText, $status) = $radiamAPI->createDocumentBulk($project_config['endpoint'], $metadata);
+            if ($respText) 
+            {
+                if (gettype($respText) == "array")
+                {
+                    foreach($respText as $s) {
+                        // check if s is a associative array
+                        if (gettype($s) == "array" and array_keys($s) !== range(0, count($s) - 1)) {
+                            if (!$s['result']) {
+                                $logger->error("Error sending file to API: {$s['docname'] {$s['result']}}");
+                            }
+                        }
+                    }
+                }
+                else {
+                    $logger->error("Radiam API error with index {$project_config['endpoint']}: {$respText}");
+                }
+            }
+            return array($respText, $status);
+        } catch (\Exception $e) {
+            // file_put_contents("e", print_r($e, true));      
+            sleep(10);
+        }
+    }
+}
