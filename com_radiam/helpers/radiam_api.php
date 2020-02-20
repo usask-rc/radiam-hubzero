@@ -6,66 +6,41 @@ namespace Components\Radiam\Helpers;
  * Main Radiam API class
  */
 class RadiamAPI
-{
+{   
+    /**
+	 * REST headers
+	 *
+	 * @var  array
+	 */
+    private $headers = array(
+        'Content-type: application/json',
+        'Accept: application/json'
+    );
+    
     function __construct($baseurl, $authtokens, $logger, $userId) {
 
-        $this->tokenfile = null;
+        $this->setLogger($logger);        
         $this->baseurl = $baseurl;
-        $this->setLogger($logger);
         $this->authtokens = $authtokens;
         $this->userId = $userId;
-        $this->headers = array(
-            'Content-type: application/json',
-            'Accept: application/json'
-        );
-        
+ 
         if (isset($this->baseurl)) {
-            if (substr($this->baseurl, 0, 4) !== "http") {
-                $this->baseurl = "http://" . $this->baseurl;
-            }
-            if (substr($this->baseurl, -1, 1) !== "/") {
-                $this->baseurl = $this->baseurl . "/";
-            }
-            $this->endpoints = array(
-                "login"        => $this->baseurl . "api/token/",
-                "refresh"      => $this->baseurl . "api/token/refresh/",
-                "users"        => $this->baseurl . "api/users/",
-                "groups"       => $this->baseurl . "api/researchgroups/",
-                "projects"     => $this->baseurl . "api/projects/",
-                "locations"    => $this->baseurl . "api/locations/",
-                "locationtypes"=> $this->baseurl . "api/locationtypes/",
-                "useragents"   => $this->baseurl . "api/useragents/"
-            );
+            $this->formatBaseurl();
+            $this->setEndpoints();
+        }
+        else {
+            throw new \Exception("Baseurl is not set.");
         }
     }
-
 
     /**
      * Set up the logger
      *
-     * @param   object?  $logger The logger
+     * @param   object  $logger the logger
      */
-    public function setLogger($logger) {
+    private function setLogger($logger) {
         $this->logger = $logger;
     }
-
-
-    /**
-     * Load auth tokens from a file
-     *
-     * @return  boolean?
-     */
-    public function loadAuthFromFile() {
-        // TODO: uncomment and fix
-        // if (file_exists($this->tokenfile)) {
-        //     $this->authtokens = json_decode(file_get_contents($f), true);
-        //     if array_key_exists("access", $this->authtokens) {
-        //         return true;
-        //     }
-        // }
-        return null;
-    }
-
 
     /**
      * Log error messages
@@ -78,27 +53,54 @@ class RadiamAPI
         }
     }
 
+    /**
+     * Set up the endpoints
+     */
+    private function setEndpoints() {
+        $this->endpoints = array(
+            "login"        => $this->baseurl . "api/token/",
+            "refresh"      => $this->baseurl . "api/token/refresh/",
+            "users"        => $this->baseurl . "api/users/",
+            "groups"       => $this->baseurl . "api/researchgroups/",
+            "projects"     => $this->baseurl . "api/projects/",
+            "locations"    => $this->baseurl . "api/locations/",
+            "locationtypes"=> $this->baseurl . "api/locationtypes/",
+            "useragents"   => $this->baseurl . "api/useragents/"
+        );
+    }
+
+    
+    /**
+     * Format the baseurl
+     */
+    private function formatBaseurl() {
+        if (substr($this->baseurl, 0, 4) !== "http") {
+            $this->baseurl = "http://" . $this->baseurl;
+        }
+        if (substr($this->baseurl, -1, 1) !== "/") {
+            $this->baseurl = $this->baseurl . "/";
+        }
+    }
 
     /**
      * Write auth tokens to database
      */
-    public function writeAuthToDb() {
+    private function writeAuthToDb() {
 
         $db = App::get('db');
         $sql = "UPDATE `#__radiam_radtokens` 
                 SET `access_token` = '{$this->authtokens['access']}'
                 WHERE `user_id` = '{$this->userId}';";
-
         $db->setQuery($sql);
         $db->query();
     }
 
     /**
-     * Make login requests
+     * Make login requests (Untested)
      *
      * @param  string  $username  The username being used to log in
      * @param  string  $password  The password being used to log in
-     * @return  boolean?
+     * @return  boolean
      */
     public function login($username, $password) {
         $body = array("username" => $username, "password" => $password);
@@ -111,7 +113,8 @@ class RadiamAPI
             $result = curl_exec($ch);
             $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
-        } catch ( \Exception $e ) {
+        } catch (\Exception $e ) {
+            $this->logError($e->getMessage());
             return false;
         }
         if ($statusCode != 200) {
@@ -122,17 +125,15 @@ class RadiamAPI
                 $this->authtokens["refresh"] = $respObj->refresh;
             if (isset($respObj->access))
                 $this->authtokens["access"] = $respObj->access;
-            if (isset($this->tokenfile))
-                $this->writeAuthToDb();
+            $this->writeAuthToDb();
             return true;
         }
     }
 
-
     /**
-     * Refresh an auth token
+     * Refresh the auth token
      */
-    public function refreshToken() {
+    private function refreshToken() {
 
         $body = array("refresh" => $this->authtokens["refresh"]);           
         $ch = curl_init($this->endpoints["refresh"]);
@@ -158,15 +159,14 @@ class RadiamAPI
         }
     }
 
-
     /**
      * Perform a GET call to the API
      *
      * @param  string  $url  The URL being called
      * @param  int  $retries  Number of retries to attempt, default 1
-     * @return  array  $response  The response from the API
+     * @return  object  $response  The response from the API
      */
-    public function apiGet($url, $retries = 1) {
+    private function apiGet($url, $retries = 1) {
         if ($retries <= 0) {
             $this->logError("Ran out of retries to connect to Radiam API");
             $response = null;
@@ -215,16 +215,15 @@ class RadiamAPI
         }
     }
 
-
     /**
      * Perform a POST call to the API
      *
      * @param  string  $url  The URL being called
      * @param  string  $body  The body of the POST
-     * @param  int  $retries  Number of retries to attempt, default 1
-     * @return  array  $response  The response from the API
+     * @param  int     $retries  Number of retries to attempt, default 1
+     * @return object  $response  The response from the API
      */
-    public function apiPost($url, $body, $retries = 1) {
+    private function apiPost($url, $body, $retries = 1) {
         if ($retries <= 0) {
             $this->logError("Ran out of retries to connect to Radiam API");
             $response = null;
@@ -268,18 +267,19 @@ class RadiamAPI
             }
             $this->apiPost($url, $body, 1);
         } else {
-            $this->logError(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
+            $this->logError(sprintf("Radiam API error while posting to: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
             return $response;
         }
     }
+
     /**
      * Perform a bulk POST call to the API
      *
      * @param  string  $url  The URL being called
      * @param  string  $body  The body of the POST
      * @param  int  $retries  Number of retries to attempt, default 1
-     * @return  array  $response  The response from the API
+     * @return  array  $response, status  The response from the API, bulk POST successful or not
      */
     public function apiPostBulk($url, $body, $retries = 1) {
         if ($retries <= 0) {
@@ -292,6 +292,11 @@ class RadiamAPI
         $jsonString = json_encode($body);
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Otherwise response=1
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 7); //Timeout after 7 seconds
+        curl_setopt($ch, CURLINFO_HEADER_OUT, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonString);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $postHeaders);
         $result = curl_exec($ch);
@@ -308,7 +313,7 @@ class RadiamAPI
             }
         } elseif ($statusCode == 200 || $statusCode == 201) {
             $response = json_decode($result);
-            return $response;
+            return array($response, true);
         } elseif ($statusCode == 429) {
             $responseJson = json_decode($result);
             if (property_exists($responseJson, "retry-after")) {
@@ -318,21 +323,20 @@ class RadiamAPI
             }
             $this->apiPostBulk($url, $body, 1);
         } else {
-            $this->logError(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
+            $this->logError(sprintf("Radiam API error while posting bulk to: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
-            return $response;
+            return array($response, false);
         }
     }
-
 
     /**
      * Perform a DELETE call to the API
      *
      * @param  string  $url  The URL being called
      * @param  int  $retries  Number of retries to attempt, default 1
-     * @return  array  $response  The response from the API
+     * @return  object  $response  The response from the API
      */
-    public function apiDelete($url, $retries = 1) {
+    private function apiDelete($url, $retries = 1) {
         if ($retries <= 0) {
             $this->logError("Ran out of retries to connect to Radiam API");
             $response = null;
@@ -370,7 +374,7 @@ class RadiamAPI
             }
             $this->apiDelete($url, 1);
         } else {
-            $this->logError(sprintf("Radiam API error while getting from: %s with code %s and error %s \n", $url, $statusCode, $result));
+            $this->logError(sprintf("Radiam API error while deleting from: %s with code %s and error %s \n", $url, $statusCode, $result));
             $response = null;
             return $response;
         }
@@ -380,7 +384,7 @@ class RadiamAPI
     /**
      * Get list of users
      *
-     * @return  array  $users  Output from users endpoint 
+     * @return  object  $users  Output from users endpoint 
      */
     public function getUsers() {
         $users = $this->apiGet($this->endpoints["users"]);
@@ -391,7 +395,7 @@ class RadiamAPI
     /**
      * Get logged in user
      *
-     * @return  array  $currentUser  Current user output from users endpoint 
+     * @return  object  $currentUser  Current user output from users endpoint 
      */
     public function getLoggedInUser() {
         $currentUser = $this->apiGet($this->endpoints["users"] . "current");
@@ -402,7 +406,7 @@ class RadiamAPI
     /**
      * Get list of groups
      *
-     * @return  array  $get_groups  Output from groups endpoint 
+     * @return  object  $get_groups  Output from groups endpoint 
      */
     public function getGroups() {
         $groups = $this->apiGet($this->endpoints["groups"]);
@@ -413,7 +417,7 @@ class RadiamAPI
     /**
      * Get list of users
      *
-     * @return  array  $projects  Output from projects endpoint 
+     * @return  object  $projects  Output from projects endpoint 
      */
     public function getProjects() {
         $projects = $this->apiGet($this->endpoints["projects"]);
@@ -422,29 +426,10 @@ class RadiamAPI
 
 
     /**
-     * Check in to API as agent to set up IDs
-     *
-     * @param  array  $body  JSON to post
-     * @param  string  $checkinUrl  URL to check in to
-     * @return  string  $checkinPost  Result of constructed post
-     */
-    public function agentCheckin($body, $checkinUrl) {
-        if ($body == null) {
-            return null;
-        }
-        // if (gettype($body) == "array") {
-        //     $body = json_encode($body);
-        // }
-        $checkinPost = $this->apiPost($checkinUrl, $body);
-        return $checkinPost;
-    }
-
-
-    /**
      * Create a project on the API
      *
      * @param  array  $body  JSON to post
-     * @return  string  $createProjectPost  Result of constructed post
+     * @return  object  $createProjectPost  Result of constructed post
      */
     public function createProject($body) {
         if ($body == null) {
@@ -462,7 +447,7 @@ class RadiamAPI
      * Create a location on the API
      *
      * @param  array  $body  JSON to post
-     * @return  string  $createLocationPost  Result of constructed post
+     * @return  object  $createLocationPost  Result of constructed post
      */
     public function createLocation($body) {
         if ($body == null) {
@@ -480,15 +465,12 @@ class RadiamAPI
      * Create a user agent on the API
      *
      * @param  array  $body  JSON to post
-     * @return  string  $createUserAgentPost  Result of constructed post
+     * @return  object  $createUserAgentPost  Result of constructed post
      */
     public function createUserAgent($body) {
         if ($body == null) {
             return null;
         }
-        // if (gettype($body) == "array") {
-        //     $body = json_encode($body);
-        // }
         $createUserAgentPost = $this->apiPost($this->endpoints["useragents"], $body);
         return $createUserAgentPost;
     }
@@ -499,7 +481,7 @@ class RadiamAPI
      *
      * @param  string  $indexUrl  Index URL to post to
      * @param  array  $body  JSON to post
-     * @return  string  $createDocumentPost  Result of constructed post
+     * @return  object  $createDocumentPost  Result of constructed post
      */
     public function createDocument($indexUrl, $body) {
         if ($body == null) {
@@ -516,15 +498,12 @@ class RadiamAPI
      *
      * @param  string  $indexUrl  Index URL to post to
      * @param  array  $body  JSON to post
-     * @return  string  $createDocumentPost  Result of constructed post
+     * @return  array  $createDocumentPost  Result of constructed post
      */
     public function createDocumentBulk($indexUrl, $body) {
         if ($body == null) {
             return null;
         }
-        // if (gettype($body) == "array") {
-        //     $body = json_encode($body);
-        // }
         $indexUrl .= "docs/";
         $createDocumentPost = $this->apiPostBulk($indexUrl, $body);
         return $createDocumentPost;
@@ -536,7 +515,7 @@ class RadiamAPI
      *
      * @param  string  $indexUrl  Index URL to post to
      * @param  string  $id  Document ID
-     * @return  string  $deletePost  Result of constructed post
+     * @return  object  $deletePost  Result of constructed post
      */
     public function deleteDocument($indexUrl, $id) {
         if ($id == null) {
@@ -553,7 +532,7 @@ class RadiamAPI
      *
      * @param  string  $indexUrl  Index URL to post to
      * @param  string  $path   Path to file you're searching for
-     * @return  string  $pathSearch  Path search result
+     * @return  object  $pathSearch  Path search result
      */
     public function searchEndpointByPath($indexUrl, $path) {
         $pathSearch = $this->searchEndpointByFieldname($indexUrl, $path, "path.keyword");
@@ -567,7 +546,7 @@ class RadiamAPI
      * @param  string  $indexUrl  Index URL to post to
      * @param  string  $target  Search target
      * @param  string  $fieldname  The name of the field being searched on
-     * @return  string  $fieldSearch  The field search result
+     * @return  object  $fieldnameSearchPost  The field search result
      */
     public function searchEndpointByFieldname($indexUrl, $target, $fieldname) {
         if ($fieldname == null) {
@@ -591,7 +570,7 @@ class RadiamAPI
      * @param  string  $endpoint  The endpoint address
      * @param  string  $name  The name
      * @param  string  $namefield  The field being searched on, e.g. "name"
-     * @return  array  $getEndpointUrl  The endpoint response
+     * @return  object  $getEndpointUrl  The endpoint response
      */
     public function searchEndpointByName($endpoint, $name, $namefield = "name") {
         if ($name == null) {
@@ -613,6 +592,13 @@ class RadiamAPI
         return $getEndpointUrl;
     }
 
+
+    /**
+     * Search an API endpoint 
+     *
+     * @param  string  $indexUrl  Index URL to post to
+     * @return  object  $searchPost  The search result
+     */
     public function searchEndpoint($indexUrl) {
         $indexUrl .= "search/";
         $body = array("query" => array("bool" => array("filter" => array())));
@@ -620,6 +606,7 @@ class RadiamAPI
         return $searchPost;
     }
 
+    
     /**
      * Get the API status code
      *
@@ -635,6 +622,12 @@ class RadiamAPI
         $get_headers = $this->headers;
         array_push($get_headers, "Authorization: Bearer " . $this->authtokens["access"]);
         $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 7); //Timeout after 7 seconds
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); //otherwise 301 error
+        curl_setopt($ch, CURLINFO_HEADER_OUT, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $get_headers);
         $result = curl_exec($ch);
         $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
