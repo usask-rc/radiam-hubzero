@@ -1,6 +1,7 @@
 <?php
 namespace Components\Radiam\Helpers;
 
+use Exception;
 
 /**
  * Main Radiam API class
@@ -29,7 +30,7 @@ class RadiamAPI
             $this->setEndpoints();
         }
         else {
-            throw new \Exception("Baseurl is not set.");
+            throw new Exception("Baseurl is not set.");
         }
     }
 
@@ -113,7 +114,7 @@ class RadiamAPI
             $result = curl_exec($ch);
             $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
-        } catch (\Exception $e ) {
+        } catch (Exception $e ) {
             $this->logError($e->getMessage());
             return false;
         }
