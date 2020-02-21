@@ -58,6 +58,7 @@ class Radiam extends SiteController
 {
     const FILES_PATH = "search/";
     const PROJECTS_API = "/api/projects/";
+    private $token = null;
 
     /**
      * Determines task being called and attempts to execute it
@@ -96,38 +97,42 @@ class Radiam extends SiteController
         if (!User::isGuest())
         {
             $token = Radtoken::oneOrNew(User::get('id'));
-            if ($token != null && !$token->expired())
+            if ($token != null && !$token->expired($this))
             {
                 $this->redirect($url='display', null, null);
             }
 
-        }
-
-        if ($username != null && $password != null)
-        {   
-            $this->config->set('clientid', $username);
-            $this->config->set('clientsecret', $password);
-
-            $token = Radtoken::get_token($this, $username, $password);
-            // $this->redirect($url='display', null, null);
-            // TODO delete this
-            $this->view
-                ->set('config', $this->config)
-                ->set('filters', $filters);
-
-            if ($token->error != "") {
-                $this->view->setError($token->errorMsg);
+            elseif ($token == null) {
+                if ($username != null && $password != null)
+                {   
+                    $this->config->set('clientid', $username);
+                    $this->config->set('clientsecret', $password);
+    
+                    $token = Radtoken::get_token($this, $username, $password);
+                    $this->redirect($url='display', null, null);
+                    $this->view
+                        ->set('config', $this->config)
+                        ->set('filters', $filters);
+    
+                    if ($token->error != "") {
+                        $this->view->setError($token->errorMsg);
+                    }
+    
+                    $this->view->display();
+                }
+                else
+                {
+                    // Output HTML
+                    $this->view
+                        ->set('config', $this->config)
+                        ->set('filters', $filters)
+                        ->display();
+                }
             }
-
-            $this->view->display();
-        }
-        else
-        {
-            // Output HTML
-            $this->view
-                ->set('config', $this->config)
-                ->set('filters', $filters)
-                ->display();
+            else {
+                $token = $this->getToken($this);
+                $this->redirect($url='display', null, null);
+            }
         }
     }
 
@@ -256,8 +261,8 @@ class Radiam extends SiteController
             return false;
         }
 
-        if ($token->expired())
-        {
+        if ($token->expired($this))
+        {   
             if (!$token->refresh($this))
             {
                 return false;

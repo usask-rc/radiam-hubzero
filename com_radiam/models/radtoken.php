@@ -118,8 +118,9 @@ class Radtoken extends Relational
      *
      * @return  boolean
      */
-    public function expired()
+    public function expired($controller)
     {
+        $debug = true;
         // If it doesn't exist or isn't published
         if ($this->isNew())
         {
@@ -131,19 +132,56 @@ class Radtoken extends Relational
             return true;
         }
 
-        // if (empty($this->get('valid_until')))
-        // {
-        //     return true;
-        // }
+        $radiam_url = $controller->config->get('radiamurl', null);
 
-        // if ($this->get('valid_until')
-        //  && $this->get('valid_until') != '0000-00-00 00:00:00'
-        //  && $this->get('valid_until') <= Date::toSql())
-        // {
-        //     return true;
-        // }
+        if ($debug)
+        {
+            echo("The token is being verified.");
+        }
 
-        return false;
+        $data = array(
+            'token' => $this->get('access_token')
+        );
+
+        // REST API Token URL
+        // TODO Replace with proper constant / config
+        $token_url = Helper::buildUrl($radiam_url, "/api/token/verify/");
+
+        if ($debug)
+        {
+            echo "<div>Url: " . $radiam_url . "</div>";
+            echo "<div>Token URL:" . $token_url . "</div>";
+        }
+
+        // cURL
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $token_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 7); //Timeout after 7 seconds
+        curl_setopt($ch, CURLINFO_HEADER_OUT, false);
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+
+        $output = curl_exec($ch);
+        $err = curl_error($ch);
+
+        curl_close($ch);
+
+        if ($err) {
+            echo "cURL Error #:" . $err;
+            return true;
+        } 
+        else {
+            $json = json_decode($output);
+            if (isset($json -> {"code"}) and $json->{"code"} === "token_not_valid") {
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
     }
 
     /**
@@ -257,30 +295,28 @@ class Radtoken extends Relational
     //TODO use common codebase to make request to refresh token
     public function refresh($controller)
     {
-        $debug = false;
+        $debug = true;
         $user_id = User::get('id');
 
         $radiam_url = $controller->config->get('radiamurl', null);
         $client_id = $controller->config->get('clientid', null);
         $client_secret = $controller->config->get('clientsecret', null);
 
-
-        if ($this->expired())
-        {
+        if ($this->expired($controller))
+        {   
             if ($debug)
             {
                 echo("The token is being refreshed");
             }
 
             $data = array(
-                'grant_type' => 'refresh_token',
                 'refresh' => $this->get('refresh_token')
             );
 
 
             // REST API Token URL
             // TODO Replace with proper constant / config
-            $token_url = Helper::buildUrl($radiam_url, "/api/token/");
+            $token_url = Helper::buildUrl($radiam_url, "/api/token/refresh/");
 
             if ($debug)
             {
@@ -291,15 +327,13 @@ class Radtoken extends Relational
             }
 
             // cURL
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $token_url);
+            $ch = curl_init($token_url);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 7); //Timeout after 7 seconds
             curl_setopt($ch, CURLINFO_HEADER_OUT, false);
             curl_setopt($ch, CURLOPT_HEADER, false);
-            curl_setopt($ch, CURLOPT_USERPWD, $client_id . ":" . $client_secret);
-            curl_setopt($ch, CURLOPT_POST, true);
             curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 
             $output = curl_exec($ch);
@@ -312,17 +346,14 @@ class Radtoken extends Relational
                 return false;
             } else {
                 $json = json_decode($output);
+
                 if (isset($json -> {"access"})) {
                     if ($debug)
                     {
                         echo "<div>Access Token: " . $json->{"access"} . "</div>";
-                        echo "<div>Refresh Token: " . $json->{"refresh"} . "</div>";
-                        // echo "<div>Expires In: " . date("c", (time() + $json->{"expires_in"})) . "</div>";
                     }
 
                     $this->set('access_token', $json->{"access"})
-                        ->set('refresh_token', $json->{"refresh"})
-                        // ->set('valid_until', date("c", (time() + $json->{"expires_in"})))
                         ->save();
                     return true;
                 }
@@ -353,7 +384,7 @@ class Radtoken extends Relational
 
     public static function get_token($controller, $username, $password)
     {
-        $debug = true;
+        $debug = false;
         $user_id = User::get('id');
 
         $radiam_url = $controller->config->get('radiamurl', null);
