@@ -8,19 +8,15 @@
 namespace Components\Radiam\Helpers;
 
 use Components\Radiam\Models\Radtoken;
-require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radtoken.php';
-
 use Components\Radiam\Helpers\RadiamAPI;
-require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'radiam_api.php';
-
-use Monolog\Logger;
-use Monolog\Handler\StreamHandler;
-use Monolog\Formatter\LineFormatter;
 use Components\Projects\Models\Orm\Project;
+use Exception;
 use FilesystemIterator;
 use SplQueue;
 
 require_once \Component::path('com_projects') . DS . 'models' . DS . 'orm' . DS . 'project.php';
+require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radtoken.php';
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'radiam_api.php';
 
 // No direct access
 defined('_HZEXEC_') or die('Restricted access');
@@ -34,84 +30,351 @@ class QueueHelper
     /**
      * The logger
      *
-     * @var logger
+     * @var null
      */
-    protected $logger = null;
-    protected $config = array();
-    protected $cSet = array();
-    protected $dSet = array();
-    protected $radiamAPI = null;
-    protected $project_key = null;
-    protected $project_config = null;
+    private $logger = null;
 
+    /**
+     * The radiam hubzero agent config 
+     * 
+     * @var array
+     */
+    private $config = array();
+
+    /**
+     * The set containing files to create
+     *
+     * @var array
+     */
+    private $cSet = array();
+
+    /**
+     * The set containing files to delete
+     *
+     * @var array
+     */
+    private $dSet = array();
+
+    /**
+     * Radiam API Object
+     *
+     * @var object
+     */
+    private $radiamAPI = null;
+
+    /**
+     * The project id that is being monitored
+     *
+     * @var int
+     */
+    private $project_key = null;
+
+    /**
+     * The monitored project config
+     *
+     * @var array
+     */
+    private $project_config = array();
+
+    /**
+	 * Database instance
+	 *
+	 * @var  object
+	 */
+	private $_db = null;
+
+    /**
+     * @const int The maximum data size allowed to POST
+     */
+    const POST_DATA_LIMIT = 1000000;
+
+    /**
+     * Constructor
+     *
+     * @param array $config The radiam hubzero agent config 
+     * @param int $project_key The project id that is being monitored
+     * @param object $logger The logger
+     */
     public function __construct($config, $project_key, $logger)
     {   
         $this->project_key = $project_key;
         $this->logger = $logger;
         $this->config = $config;
-        
 
         $this->logger->info("Construct the queue processor for project {$project_key}");
+
+        // Initialize DB
+		$this->_db = App::get('db');
         
         $userId = $this->getProjectOwner($project_key);
         if ($userId == null) {
             $this->logger->error('Project does not exist.');
-            throw new Exception();
+            throw new Exception('Project does not exist.');
         } 
 
-        $tokens = getToken($userId);
-
+        $tokens = $this->getToken($userId);
         if ($tokens == null) {
             $this->logger->error('Please login first.');
-            throw new Exception();
+            throw new Exception('Please login first.');
         } 
-
         $tokens_array = array (
             "access"  => $tokens->get('access_token'),
             "refresh" => $tokens->get('refresh_token')
         );
+
         $this->radiamAPI = new RadiamAPI($this->config["radiam_host_url"], $tokens_array, $this->logger, $userId);
-    }
 
-    function processQueue()
-    {	
-        $this->logger->info('Start processing file event queue');
-        // $this->_loadConfig();
-
-        list($this->config, $checkinStatus, $errMessage) = agentCheckin($this->radiamAPI, $this->config, $this->logger);
+        list($checkinStatus, $errMessage) = $this->agentCheckin();
         $this->project_config = $this->config[$this->project_key];
-        // file_put_contents("this_config", print_r($this->config, true));
+        file_put_contents("this_config", print_r($this->config, true));
         
         if (!$checkinStatus) {
             $this->logger->error($errMessage);
-            exit();
+            throw new Exception("Agent failed to checkin with error message {$errMessage}.");
         }
+        $this->logger->info("Finish constructor");
+    }
 
-        fullRun($this->radiamAPI, $this->config, $this->logger);
+    /**
+     * Check in to API as agent to set up IDs
+     *
+     * @param object $API The radiam API object
+     * @param  array  $config  The radiam hubzero agent config 
+     * @param  object  $logger  The logger
+     * @return array The checkin status and error message
+     */
+    private function agentCheckin() 
+    {   
+        $defaultLocationType = "location.type.hubzero";
+        $version = "1.2.0";
+        $host = $this->config['radiam_host_url'];
+        foreach ($this->config['projects'] as $project_key) {
+            if (array_key_exists('radiam_project_uuid', $this->config[$project_key]) and $this->config[$project_key]['radiam_project_uuid']) {
+                $this->config[$project_key]['endpoint'] = $host . "api/projects/" . $this->config[$project_key]['radiam_project_uuid'] . "/";
+                $res = $this->radiamAPI->searchEndpointByName('projects', $this->config[$project_key]['radiam_project_uuid'], "id");
+                if (!$res or !isset($res->results) or count($res->results) == 0) {
+                    return array(false, "Radiam project id {$this->config[$project_key]['radiam_project_uuid']} does not appear to exist - was it deleted?");
+                }
+            }
+            else {
+                return array(false, "No radiam project id provided. Please set it up in the Radiam Component page.");
+            }
 
-        $this->_db = App::get('db');
+            // Create the location if needed
+            if (!array_key_exists('location_id', $this->config)) {
+                $res = $this->radiamAPI->searchEndpointByName('locations', $this->config['location_name'], "display_name");
+                // file_put_contents("locations_result", print_r($res, true));
+                if ($res and isset($res->results) and count($res->results) > 0) {
+                    $this->config['location_id'] = $res->results[0]->id;
+                }
+                else {
+                    $res = $this->radiamAPI->searchEndpointByName('locationtypes', $defaultLocationType, "label");
+                    // file_put_contents("locationtypes_result", print_r($res, true));
+                    if ($res and isset($res->results) and count($res->results) > 0) {
+                        // file_put_contents("locationtypes_result_results", print_r($res->results, true));
+                        $locationId = $res->results[0]->id;
+                    }
+                    else {
+                        return array(false, "Could not look up location type ID for {$defaultLocationType}");
+                    }
+                    $hostname = gethostname();
+                    $newLocation = array(
+                        "display_name" => $this->config['location_name'],
+                        "host_name"    => $hostname,
+                        "location_type"=> $locationId
+                    );
+                    $res = $this->radiamAPI->createLocation($newLocation);
+                    // file_put_contents("create_location_result",print_r($res, true));
+                    if ($res and isset($res->id)) {
+                        $this->config['location_id'] = $res->id;
+                    }
+                    else {
+                        return array(false, "Tried to create a new location, but the API call failed.");
+                    }
+                }
+                // Write the location id to the radconfig table
+                $db = App::get('db');
+                $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`) 
+                        VALUES ('location_id', '{$this->config['location_id']}', now());";
+                $db->setQuery($sql);
+                $db->query();
+            }
+            // Create the user agent if needed
+            $res = $this->radiamAPI->searchEndpointByName('useragents', $this->config['agent_id'], "id");
+            if (!$res or !isset($res->results) or count($res->results) == 0) {
+                $this->logger->info("Useragent {$this->config['agent_id']} was not found in the remote system; creating it now.");
+                $res = $this->radiamAPI->getLoggedInUser();
+
+                if ($res and isset($res->id)) {
+                    $currentUserId = $res->id;
+                    $projectConfigList = array();
+                    //TODO: add info into project config list
+                    // for p in config['projects']['project_list']:
+                    //     project_config_list.append({
+                    //         "project": config[p]['name'],
+                    //         "config": {"rootdir": config[p]['rootdir']}
+                    //     })
+                    $newAgent = array(
+                        "id" => $this->config['agent_id'],
+                        "user" => $currentUserId,
+                        "version" => $version,
+                        "location" => $this->config['location_id'],
+                        "project_config_list" => $projectConfigList
+                    );
+                    $this->logger->debug(sprintf("JSON: %s", json_encode($newAgent)));
+                    $res = $this->radiamAPI->createUserAgent($newAgent);
+                    // file_put_contents("create_user_agent_result",print_r($res, true));
+                    if (!$res or !isset($res->id)) {
+                        return array(false, "Tried to create a new user agent, but the API call failed.");
+                    }
+                    else {
+                        $this->logger->info("User agent {$this->config['agent_id']} created.");
+                    }
+                }
+                else {
+                    $this->logger->error("Could not determine current logged in user to create user agent.");
+                    return array(false, "Could not determine current logged in user to create user agent.");
+                }
+            }
+            else {
+                $this->logger->debug("User agent {$this->config['agent_id']} appears to exist.");
+            }
+        }
+        return array(true, null);
+    }
+    /**
+     * Crawl the entire directory for all projects that with no files indexed
+     * 
+     * @return void
+     */
+    public function fullRun() 
+    {  
+        $queue = new SplQueue();
+        while (true) {
+            try {
+                foreach($this->config['projects'] as $project_key) {
+                    $this->logger->info("Checking if files indexed for Project {$project_key}.");
+                    // if there is no files in a project, then run the initial crawl
+                    $res = $this->radiamAPI->searchEndpoint($this->config[$project_key]["endpoint"]);      
+                    if ($res->count > 0) {
+                        $this->logger->info("There are files indexed for Project {$project_key}.");
+                        return;
+                    }
+                    $this->logger->info("Start to full run the Project {$project_key}.");
+                    $queue->push($this->config[$project_key]['rootdir']);
+                    $files = array();
+                    $bulkdata = array();
+                    $bulksize = 0;
+
+                    // nested function 
+                    $postData = function($metadata, $files, $entry, $bulksize, $bulkdata) use($project_key)
+                    {
+                        $repsText = null;
+                        $status = false;
+                        if ($metadata == null or gettype($metadata) == "array" and count($metadata) == 0) {       
+                        }
+                        else {
+                            array_push($files, $entry);
+                            $metasize = mb_strlen(json_encode($metadata), "8bit");
+                            if (($metasize + $bulksize) > self::POST_DATA_LIMIT) {
+                                list($repsText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
+                                $bulkdata = array();
+                                array_push($bulkdata, $metadata);
+                                $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
+                            }
+                            else {
+                                array_push($bulkdata, $metadata);
+                                $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
+                            }
+                        }
+                        return array($bulkdata, $bulksize, $repsText, $status);
+                    };
+                    while (!$queue->isEmpty()) {
+                        try {
+                            $path = $queue->pop();
+                            try {
+                                $fs = new FilesystemIterator($path);
+                                // entry includes the filename
+                                foreach ($fs as $entry) {
+                                    if ($entry->isDir()) {
+                                        $queue->push($entry->getPathname());
+                                        $metadata = $this->getDirMeta($entry->getPathname());
+                                        list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
+                                    }
+                                    else if ($entry->isFile()) {
+                                        $metadata = $this->getFileMeta($entry->getPathname(), $project_key);
+                                        list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
+                                    }
+                                }
+                            } catch(Exception $e) {
+                                $this->logger->warning($e);
+                            }
+                        } catch(Exception $e) {
+                            $this->logger->warning($e);
+                            break;
+                        }
+                    }
+                    if ($bulkdata == null or gettype($bulkdata) == "array" and count($bulkdata) == 0) {
+                        $this->logger->info("No files to index on Project {$project_key}");
+                        $this->logger->info(sprintf("Agent has added %s files to Project %s", count($files), $project_key));
+                        return array(null, 200);
+                    }
+                    else {
+                        list($repsText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
+                    }
+                    if ($status) {
+                        $this->logger->info("Finished indexing files to Project {$project_key}");
+                        $this->logger->info(sprintf("Agent has added %s files to Project %s", count($files), $project_key));
+                    }
+                    else {
+                        return array($respText, $status);
+                    }
+                }
+            } catch (Exception $e) {
+                file_put_contents("e", print_r($e, true));
+                throw new Exception($e);
+                sleep(10);
+            }
+        }
+    }
+
+    /**
+     * Process the radqueue table, remove the row if sent to radiam API successfully
+     *
+     * @return void
+     */
+    public function processQueue()
+    {	
+        $this->logger->info('Start to process file event queue.');
+
+        // fullRun($this->radiamAPI, $this->config, $this->logger);
+
         $radiamQueue = $this->getRadiamQueue();
-        if ($radiamQueue !== false)
+        if ($radiamQueue)
         {
             foreach ($radiamQueue as $event)
             {	
                 
                 $result = $this->postToRadiamApi($event);
                 $id = $event->id;
-                // if ($result === 'success')
-                // {	
-                //     $this->deleteRadiamQueueRow($id);
-                // }
-                // elseif ($result === 'fail')
-                // {
-                //     $this->updateRadiamQueue($id);
-                // }
+                if ($result)
+                {	
+                    $this->deleteRadiamQueueRow($id);
+                }
+                else
+                {
+                    $this->updateRadiamQueue($id);
+                }
             }
         }
     }
-    protected function getRadiamQueue()
+    /**
+     * Get all the records in radqueue table
+     *
+     * @return array The array of SQL query results
+     */
+    private function getRadiamQueue()
     {
-        $this->_db = App::get('db');
         $sql = "SELECT `id`, `project_id`, `src_path`, `dest_path`, `action`
                 FROM `#__radiam_radqueue`
                 ORDER BY `created` ASC";
@@ -120,163 +383,213 @@ class QueueHelper
     
         if (!$this->_db->getNumRows())
         {
-            return false;
+            return null;
         }
-    
         $radiamQueue = $this->_db->loadObjectList();
         return $radiamQueue;
     }
-    protected function deleteRadiamQueueRow($id)
+    /**
+     * Delete a row by id in radqueue table
+     *
+     * @param int $id The primary key of radqueue table
+     * @return void
+     */
+    private function deleteRadiamQueueRow($id)
     {
-        $this->_db = App::get('db');
         $sql = "DELETE FROM `#__radiam_radqueue`
                 WHERE `id` = '{$id}'";
         $this->_db->setQuery($sql);
         $this->_db->query();
     }
-    protected function updateRadiamQueue($id)
+
+
+    /**
+     * Update the last_modified field of a row by id in radqueue table
+     *
+     * @param int $id The primary key of radqueue table
+     * @return void
+     */
+    private function updateRadiamQueue($id)
     {
-        $this->_db = App::get('db');
         $sql = "UPDATE `#__radiam_radqueue`
                 SET `last_modified` = now()
                 WHERE `id` = '{$id}'";
         $this->_db->setQuery($sql);
         $this->_db->query();
     }
-    protected function onCreated($event)
+
+
+    /**
+     * Actions to take on a create file system event
+     *
+     * @param object $event A row in the radqueue table, representing a file system event
+     * @return boolean Whether the data is sent to the server successfully or not
+     */
+    private function onCreated($event)
     {
-        $this->onCreateModify($event, 'Created');
+        return $this->onCreateModify($event, 'Created');
     }
 
-    protected function onModified($event)
+    /**
+     * Actions to take on a modify file system event
+     *
+     * @param object $event A row in the radqueue table, representing a file system event
+     * @return void
+     */
+    private function onModified($event)
     {
-        $this->onCreateModify($event, 'Modified');
+        return $this->onCreateModify($event, 'Modified');
     }
 
-    protected function onMoved($event)
+    /**
+     * Actions to take on a move file system event
+     *
+     * @param object $event A row in the radqueue table, representing a file system event
+     * @return boolean Whether the data is sent to the server successfully or not
+     */
+    private function onMoved($event)
     {
-        $srcPath = $event->src_path;
-        // add a new field into the radiam queue table
-        $destPath = $event->dest_path;
-        $what = pathinfo($srcPath, PATHINFO_EXTENSION)? 'file': 'directory'; // determine whether the event is for a file or directory
-        
-        $this->logger->info("Moving {$what} from {$srcPath} to {$destPath}");
-        array_push($this->dSet, $srcPath);
-        array_push($this->cSet, $destPath);
-        while (count($this->cSet) != 0) {
-            $pathIn = array_pop($this->cSet);
-            if ($what === 'directory')
-            {
-                $metadata = getDirMeta($pathIn, $this->config);
+        try {
+            $srcPath = $event->src_path;
+            // add a new field into the radiam queue table
+            $destPath = $event->dest_path;
+            $what = pathinfo($srcPath, PATHINFO_EXTENSION)? 'file': 'directory'; // determine whether the event is for a file or directory
+            
+            $this->logger->info("Moving {$what} from {$srcPath} to {$destPath}");
+            array_push($this->dSet, $srcPath);
+            array_push($this->cSet, $destPath);
+            while (count($this->cSet) != 0) {
+                $pathIn = array_pop($this->cSet);
+                if ($what === 'directory')
+                {
+                    $metadata = $this->getDirMeta($pathIn);
+                }
+                else 
+                {
+                    $metadata = $this->getFileMeta($pathIn);
+                }
+                if ($metadata != null)
+                {   
+                    $this->tryConnectionInWorker($pathIn, $metadata);
+                }
             }
-            else 
-            {
-                $metadata = getFileMeta($pathIn, $this->config);
+            while (count($this->dSet) != 0) {
+                $pathDe = array_pop($this->dSet);
+                $this->tryConnectionInWorker($pathDe);
+                $this->logger->info("Moved {$what}: from {$srcPath} to {$destPath}");
             }
-            if ($metadata != null)
-            {   
-                // TODO: fix getToken bug
-                // $token = $this->getToken();
-                // $access_token = $token->get('access_token');
-                tryConnectionInWorker($this->radiamAPI, $this->project_config, $pathIn, $this->logger, $metadata);
-                // TODO: check if need set_last_crawl.add
+            list($metaStatusSrc, $parentPathSrc) = $this->updatePath($srcPath);
+            list($metaStatusDest, $parentPathDest) = $this->updatePath($destPath);
+            if ($metaStatusSrc === true) {
+                $this->logger->info("Update the information for directory {$parentPathSrc}");
             }
-        }
-        while (count($this->dSet) != 0) {
-            $pathDe = array_pop($this->dSet);
-            tryConnectionInWorker($this->radiamAPI, $this->project_config, $pathDe, $this->logger);
-            // TODO: check if need set_last_crawl.add
-            $this->logger->info("Moved {$what}: from {$srcPath} to {$destPath}");
-        }
-        list($metaStatusSrc, $parentPathSrc) = updatePath($srcPath, $this->config, $this->project_key, $this->radiamAPI, $this->project_config, $this->logger);
-        list($metaStatusDest, $parentPathDest) = updatePath($destPath, $this->config, $this->project_key, $this->radiamAPI, $this->project_config, $this->logger);
-        if ($metaStatusSrc === true) {
-            // TODO: check if need set_last_crawl.add
-            $this->logger->info("Update the information for directory {$parentPathSrc}");
-        }
-        if ($metaStatusDest === true) {
-            // TODO: check if need set_last_crawl.add
-            $this->logger->info("Update the information for directory {$parentPathDest}");
-        }
+            if ($metaStatusDest === true) {
+                $this->logger->info("Update the information for directory {$parentPathDest}");
+            }
+        } catch(Exception $e) {
+            $this->logger->error($e);
+            return false;
+        }     
+        return true;
     }
 
-    protected function onDeleted($event) 
+
+    /**
+     * Actions to take on a delete file system event
+     *
+     * @param object $event A row in the radqueue table, representing a file system event
+     * @return boolean Whether the data is sent to the server successfully or not
+     */
+    private function onDeleted($event) 
     {
         $this->logger->info("In onDeleted function");
-        $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $event->src_path);
-        $what = 'unknown';
-        if ($res != null) {
-            foreach ($res->results as $doc) {
-                if ($doc->type === 'directory') {
-                    $what = 'directory';
-                    array_push($this->dSet, $event->src_path);
-                }
-                elseif ($doc->type === 'file') {
-                    $what = 'file';
-                    array_push($this->dSet, $event->src_path);
-                }
-                else {
-                    $what = 'unknown';
-                    $this->logger->warning("The type is unknown.");
+        try {
+            $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $event->src_path);
+            $what = 'unknown';
+            if ($res != null) {
+                foreach ($res->results as $doc) {
+                    if ($doc->type === 'directory') {
+                        $what = 'directory';
+                        array_push($this->dSet, $event->src_path);
+                    }
+                    elseif ($doc->type === 'file') {
+                        $what = 'file';
+                        array_push($this->dSet, $event->src_path);
+                    }
+                    else {
+                        $what = 'unknown';
+                        $this->logger->warning("The type is unknown.");
+                    }
                 }
             }
-        }
-        while (count($this->dSet) != 0) {
-            $pathDe = array_pop($this->dSet);
-            tryConnectionInWorker($this->radiamAPI, $this->project_config, $pathDe, $this->logger);
-            // TODO: check if need set_last_crawl.add
-            $this->logger->info("Deleted {$what}: {$event->src_path}");
-            list($metaStatus, $parentPath) = updatePath($event->src_path, $this->config, $this->project_key, $this->radiamAPI, $this->project_config, $this->logger);
-            if ($metaStatus === true) {
-                // TODO: check if need set_last_crawl.add
-                $this->logger->info("Update the information for directory {$parentPath}");
+            while (count($this->dSet) != 0) {
+                $pathDe = array_pop($this->dSet);
+                $this->tryConnectionInWorker($pathDe);
+                $this->logger->info("Deleted {$what}: {$event->src_path}");
+                list($metaStatus, $parentPath) = $this->updatePath($event->src_path);
+                if ($metaStatus === true) {
+                    $this->logger->info("Update the information for directory {$parentPath}");
+                }
             }
+        } catch (Exception $e) {
+            $this->logger->error($e);
+            return false;
         }
+        return true;
     }
 
-    protected function onCreateModify($event, $action)
+    /**
+     * Actions to take on a create or modify file system event
+     *
+     * @param object $event A row in the radqueue table, representing a file system event
+     * @param string $action
+     * @return boolean Whether the data is sent to the server successfully or not
+     */
+    private function onCreateModify($event, $action)
     {
-        $path = $event->src_path;
-        // $what = is_dir($path)? 'directory': 'file'; // determine whether the event is for a file or directory
-        $what = pathinfo($path, PATHINFO_EXTENSION)? 'file': 'directory'; 
-        $this->logger->info("create a {$what} with path {$path}");
-        array_push($this->cSet, $path);
-        while (count($this->cSet) != 0)
-        {
-            $pathIn = array_pop($this->cSet);
-            if ($what === 'directory')
+        try {
+            $path = $event->src_path;
+            // determine whether the event is for a file or directory
+            $what = pathinfo($path, PATHINFO_EXTENSION)? 'file': 'directory'; 
+            $this->logger->info("create a {$what} with path {$path}");
+            array_push($this->cSet, $path);
+            while (count($this->cSet) != 0)
             {
-                $metadata = getDirMeta($pathIn, $this->config);
+                $pathIn = array_pop($this->cSet);
+                if ($what === 'directory')
+                {
+                    $metadata = $this->getDirMeta($pathIn);
+                }
+                else 
+                {
+                    $metadata = $this->getFileMeta($pathIn);
+                }
+                if ($metadata != null)
+                {   
+                    $this->tryConnectionInWorker($pathIn, $metadata);
+                    $this->logger->info("{$action} {$what}: {$path}");
+                }
+    
+                list($metaStatus, $parentPath) = $this->updatePath($path);
+                if ($metaStatus === true) 
+                {
+                    $this->logger->info("Update the information for directory {$parentPath}");
+                }
             }
-            else 
-            {
-                $metadata = getFileMeta($pathIn, $this->config);
-            }
-            // file_put_contents("metadata", print_r($metadata, true));
-            
-            if ($metadata != null)
-            {   
-                // TODO: fix getToken bug
-                // $token = $this->getToken();
-                // $access_token = $token->get('access_token');
-                tryConnectionInWorker($this->radiamAPI, $this->project_config, $pathIn, $this->logger, $metadata);
-                // TODO: check if need set_last_crawl.add
-                $this->logger->info("{$action} {$what}: {$path}");
-                // TODO: delete this, for debug purpose
-                $metadataStr = json_encode($metadata);
-                // $this->logger->info("{$metadataStr}");
-            }
-
-            list($metaStatus, $parentPath) = updatePath($path, $this->config, $this->project_key, $this->radiamAPI, $this->project_config, $this->logger);
-            if ($metaStatus === true) 
-            {
-                // TODO: check if need set_last_crawl.add
-                $this->logger->info("Update the information for directory {$parentPath}");
-            }
-        }    
+        } catch (Exception $e) {
+            $this->logger->error($e);
+            return false;
+        }
+        return true;
     }
 
-    protected function getProjectOwner($projectId) 
+    /**
+     * Helper function: get the project owner id by project id
+     *
+     * @param int $projectId
+     * @return int
+     */
+    private function getProjectOwner($projectId) 
 	{
         // TODO: decide whether should use oneOrFail or oneOrNew
         $project = Project::oneOrFail(intval($projectId));
@@ -285,488 +598,398 @@ class QueueHelper
         }
 		$ownerId = $project->get('owned_by_user');
 		return $ownerId;
-	}
-    function postToRadiamApi($event)
+    }
+    
+    /**
+     * Post to Radiam API on different file system events
+     *
+     * @param  object $event
+     * @return boolean $result Whether send data to Radiam API successfully or not
+     */
+    private function postToRadiamApi($event)
     {   
         if ($event->action === 'create')
         {
-            $this->onCreated($event);
+            $result = $this->onCreated($event);
         }
         elseif ($event->action === 'move')
         {
-            $this->onMoved($event);
+            $result = $this->onMoved($event);
         }
         elseif ($event->action === 'delete')
         {
-            $this->onDeleted($event);
+            $result = $this->onDeleted($event);
         }
-        return testResponse($event);
+        return $result;
     }
-}
 
-function testResponse($event)
-{
-    $responses = array('fail', 'success');
-    $resp = $responses[array_rand($responses, 1)];
-    return $resp;
-}
 
-function getGroups($userId)
-{   
-    $groups = User::getAuthorisedGroups();
-    if (empty($groups))
-    {
-        return null;
+    /**
+     * Helper function: get the user group by user id
+     *
+     * @param int $userId
+     * @return void
+     */
+    private function getGroups($userId)
+    {   
+        $groups = User::getAuthorisedGroups();
+        if (empty($groups))
+        {
+            return null;
+        };
+
+        $query = $this->_db->getQuery()
+            ->select('ug.title')
+            ->from('#__usergroups', 'ug')
+            ->join('#__user_usergroup_map AS m', 'm.group_id', 'ug.id', 'left')
+            ->where('m.user_id', '=', $userId);
+
+        $this->_db->setQuery($query->toString());
+        $result = $this->_db->loadObject();
+
+        return $result->title;
     }
-    $db = App::get('db');
 
-    $query = $db->getQuery()
-        ->select('ug.title')
-        ->from('#__usergroups', 'ug')
-        ->join('#__user_usergroup_map AS m', 'm.group_id', 'ug.id', 'left')
-        ->where('m.user_id', '=', $userId);
-
-    $db->setQuery($query->toString());
-    $result = $db->loadObject();
-
-    return $result->title;
-}
-
-function getToken($userId)
-{
-    $token = false;
-    // $user = User::getInstance($userId);
-    if(User::isGuest())
+    private function getToken($userId)
     {
-        return false;
+        $token = null;
+        // $user = User::getInstance($userId);
+        if(User::isGuest())
+        {
+            return null;
+        }
+        $token = Radtoken::oneOrNew($userId);
+
+        if ($token == null)
+        {
+            return null;
+        }
+        else
+        {
+            return $token;
+        }
     }
-    $token = Radtoken::oneOrNew($userId);
 
-    if ($token == null)
-    {
-        return false;
-    }
-    else
-    {
-        return $token;
-    }
-}
-
-function tryConnectionInWorker($radiamAPI, $project_config, $path, $logger, $metadata=null)
-{   
-    $logger->info("In try connection in worker function");
-    
-    while (true) 
-    {
-        try {
-            $logger->info("Before calling search endpoint by path");
-            $res = $radiamAPI->searchEndpointByPath($project_config['endpoint'], $path);
-            $logger->info("After calling search endpoint by path");
-            // file_put_contents("endpoint_path_result", print_r($res, true));
-            if ($res != null) 
-            {
-                if ($metadata != null)
+    private function tryConnectionInWorker($path, $metadata=null)
+    {   
+        $this->logger->info("In try connection in worker function");
+        
+        while (true) 
+        {
+            try {
+                $this->logger->info("Before calling search endpoint by path");
+                $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $path);
+                $this->logger->info("After calling search endpoint by path");
+                // file_put_contents("endpoint_path_result", print_r($res, true));
+                if ($res != null) 
                 {
-                    if ($res->count === 0)
+                    if ($metadata != null)
                     {
-                        $radiamAPI->createDocument($project_config['endpoint'], $metadata);
-                        $metadataStr = json_encode($metadata);
-                        $logger->debug("POSTing to API: {$metadataStr}");
+                        if ($res->count === 0)
+                        {
+                            $this->radiamAPI->createDocument($this->project_config['endpoint'], $metadata);
+                            $metadataStr = json_encode($metadata);
+                            $this->logger->debug("POSTing to API: {$metadataStr}");
+                        }
+                        else
+                        {
+                            $this->radiamAPI->createDocument($this->project_config['endpoint'], $metadata);
+                            $metadataStr = json_encode($metadata);
+                            $this->logger->debug("POSTing to API: {$metadataStr}");
+                        }
                     }
                     else
                     {
-                        $radiamAPI->createDocument($project_config['endpoint'], $metadata);
-                        $metadataStr = json_encode($metadata);
-                        $logger->debug("POSTing to API: {$metadataStr}");
+                        foreach ($res->results as $doc) {
+                            $this->radiamAPI->deleteDocument($this->project_config['endpoint'], $doc->id);
+                            $this->logger->info("DELETEing document {$doc->id} from API");
+                        }
                     }
-                }
-                else
-                {
-                    foreach ($res->results as $doc) {
-                        $radiamAPI->deleteDocument($project_config['endpoint'], $doc->id);
-                        $logger->info("DELETEing document {$doc->id} from API");
-                    }
-                }
-            }     
-            return;
-        } catch (\Exception $e) {
-            // file_put_contents("e", print_r($e, true));
-            
-            sleep(10);
+                }     
+                return;
+            } catch (Exception $e) {
+                // file_put_contents("e", print_r($e, true));              
+                sleep(10);
+            }
         }
     }
-}
 
-function updatePath($path, $config, $project_key, $API, $project_config, $logger)
-{   
-    $parentPath = dirname($path);
-    $metadata = getDirMeta($parentPath, $config, $project_key);
-    if ($metadata != null) {
-        tryConnectionInWorker($API, $project_config, $path, $logger, $metadata);
-        return array(true, $parentPath);
-    }
-    else{
-        return array(false, $parentPath);
-    }
-    return;
-}
-function getFileMeta($path, $config, $project_key=null)
-{
-    try{
-        clearstatcache();
-        $stat = stat($path);
-
-        #TODO: Skip files smaller than minsize cli flag
-        // if size < int(config['agent'].get('minsize',0)):
-        //     return None
-
-        $mtime = $stat['mtime']; // Time of last modification
-        $atime = $stat['atime']; // Time of last access
-        $ctime = $stat['ctime']; // TIme of last status change
-        # Convert time in days (mtime cli arg) to seconds
-        # TODO: check this
-        // $time_sec = int($config['agent'].get('mtime',0)) * 86400;
-        // $file_mtime_sec = time() - $mtime;
-        // # Only process files modified at least x days ago
-        // if ($file_mtime_sec < $time_sec)
-        // {
-        //     return null;        
-        // }
-
-        # convert times to utc for es, string in ios format
-        $mtime_utc = gmdate('c', $mtime);
-        $atime_utc = gmdate('c', $atime);
-        $ctime_utc = gmdate('c', $ctime);
-
-        # get user name
-        $owner = User::get('name');
-
-        # get group 
-        $group = getGroups(User::get('id'));
-
-        # get time
-        $indextime_utc = gmdate('c', time());
-
-        # get info from path
-        $path_parts = pathinfo($path);
-        # create file metadata array
-        $filemeta = array(
-            "name" =>$path_parts['basename'],
-            "extension" => $path_parts['extension'],
-            "path_parent" => $path_parts['dirname'],
-            "path" => $path,
-            "filesize" => $stat['size'],
-            "owner" => $owner,
-            "group" => $group,
-            "last_modified" => $mtime_utc,
-            "last_access" => $atime_utc,
-            "last_change" => $ctime_utc,
-            "indexed_by" => $owner,
-            "indexing_date" => $indextime_utc,
-            "type" => "file",
-            "location" => $config['location_id'],
-            "agent" => $config['agent_id']
-        );
-    } catch (\Exception $e) {
-        // file_put_contents("e", print_r($e, true));
-        return false;
-    }
-    return $filemeta; 
-}
-function getDirMeta($path, $config)
-{
-    try{
-        clearstatcache();
-        $stat = stat($path);
-
-        $mtime = $stat['mtime']; // Time of last modification
-        $atime = $stat['atime']; // Time of last access
-        $ctime = $stat['ctime']; // TIme of last status change
+    private function tryConnectionInWorkerBulk($metadata)
+    {   
+        $this->logger->info("In try connection in worker bulk function");
         
-        # convert times to utc for es, string in ios format
-        $mtime_utc = gmdate('c', $mtime);
-        $atime_utc = gmdate('c', $atime);
-        $ctime_utc = gmdate('c', $ctime);
-
-        # get user name
-        $owner = User::get('name');
-
-        # get group 
-        $group = getGroups(User::get('id'));
-
-        # get time
-        $indextime_utc = gmdate('c', time());
-
-        # get info from path
-        $path_parts = pathinfo($path);
-
-        # get number of items and files in the directory
-        list($itemcount, $filecount) = getDirItemsCount($path);
-        # create file metadata array
-        $dirmeta = array(
-            "name" =>$path_parts['basename'],
-            "path" => $path,
-            "path_parent" => $path_parts['dirname'],
-            "items" => $itemcount,
-            "file_num_in_dir" => $filecount,
-            "owner" => $owner,
-            "group" => $group,
-            "last_modified" => $mtime_utc,
-            "last_access" => $atime_utc,
-            "last_change" => $ctime_utc,
-            "indexed_by" => $owner,
-            "indexing_date" => $indextime_utc,
-            "type" => "directory",
-            "location" => $config['location_id'],
-            "agent" => $config['agent_id']
-        );
-    } catch (\Exception $e) {
-        return false;
-    }
-    return $dirmeta;
-}
-function getDirItemsCount($directory)
-{   
-    if (substr($directory, -1) != DS) {
-        $directory = $directory . DS;      
-    }
-
-    $filecount = 0;
-    $itemcount = 0;
-    $files = glob($directory . "*.*");
-    if ($files){
-        $filecount = count($files);
-    }
-    $items = glob($directory . "*");
-    if ($items){
-        $itemcount = count($items);
-    }
-    return array($filecount, $itemcount);
-}
-
-// TODO: move this outside queuehelper
-function agentCheckin($API, $config, $logger) 
-{   
-    $defaultLocationType = "location.type.hubzero";
-    $version = "1.2.0";
-    $host = $config['radiam_host_url'];
-    foreach ($config['projects'] as $project_key) {
-        if (array_key_exists('radiam_project_uuid', $config[$project_key]) and $config[$project_key]['radiam_project_uuid']) {
-            $config[$project_key]['endpoint'] = $host . "api/projects/" . $config[$project_key]['radiam_project_uuid'] . "/";
-            $res = $API->searchEndpointByName('projects', $config[$project_key]['radiam_project_uuid'], "id");
-            if (!$res or !isset($res->results) or count($res->results) == 0) {
-                return array($config, false, "Radiam project id {$config[$project_key]['radiam_project_uuid']} does not appear to exist - was it deleted?");
-            }
-        }
-        else {
-            return array($config, false, "No radiam project id provided. Please set it up in the Radiam Component page.");
-        }
-
-        // TODO: add assert function for agent_id and location_name
-
-        // Create the location if needed
-        if (!array_key_exists('location_id', $config)) {
-            $res = $API->searchEndpointByName('locations', $config['location_name'], "display_name");
-            // file_put_contents("locations_result", print_r($res, true));
-            if ($res and isset($res->results) and count($res->results) > 0) {
-                $config['location_id'] = $res->results[0]->id;
-            }
-            else {
-                $res = $API->searchEndpointByName('locationtypes', $defaultLocationType, "label");
-                // file_put_contents("locationtypes_result", print_r($res, true));
-                if ($res and isset($res->results) and count($res->results) > 0) {
-                    // file_put_contents("locationtypes_result_results", print_r($res->results, true));
-                    $locationId = $res->results[0]->id;
-                }
-                else {
-                    return array($config, false, "Could not look up location type ID for {$defaultLocationType}");
-                }
-                $hostname = gethostname();
-                $newLocation = array(
-                    "display_name" => $config['location_name'],
-                    "host_name"    => $hostname,
-                    "location_type"=> $locationId
-                );
-                $res = $API->createLocation($newLocation);
-                // file_put_contents("create_location_result",print_r($res, true));
-                if ($res and isset($res->id)) {
-                    $config['location_id'] = $res->id;
-                }
-                else {
-                    return array($config, false, "Tried to create a new location, but the API call failed.");
-                }
-            }
-            // Write the location id to the radconfig table
-            $db = App::get('db');
-            $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`) 
-                    VALUES ('location_id', '{$config['location_id']}', now());";
-            $db->setQuery($sql);
-            $db->query();
-        }
-        // Create the user agent if needed
-        $res = $API->searchEndpointByName('useragents', $config['agent_id'], "id");
-        if (!$res or !isset($res->results) or count($res->results) == 0) {
-            $logger->info("Useragent {$config['agent_id']} was not found in the remote system; creating it now.");
-            $res = $API->getLoggedInUser();
-
-            if ($res and isset($res->id)) {
-                $currentUserId = $res->id;
-                $projectConfigList = array();
-                //TODO: add info into project config list
-                // for p in config['projects']['project_list']:
-                //     project_config_list.append({
-                //         "project": config[p]['name'],
-                //         "config": {"rootdir": config[p]['rootdir']}
-                //     })
-                $newAgent = array(
-                    "id" => $config['agent_id'],
-                    "user" => $currentUserId,
-                    "version" => $version,
-                    "location" => $config['location_id'],
-                    "project_config_list" => $projectConfigList
-                );
-                $logger->debug(sprintf("JSON: %s", json_encode($newAgent)));
-                $res = $API->createUserAgent($newAgent);
-                // file_put_contents("create_user_agent_result",print_r($res, true));
-                if (!$res or !isset($res->id)) {
-                    return array($config, false, "Tried to create a new user agent, but the API call failed.");
-                }
-                else {
-                    $logger->info("User agent {$config['agent_id']} created.");
-                }
-            }
-            else {
-                $logger->error("Could not determine current logged in user to create user agent.");
-                return array($config, false, "Could not determine current logged in user to create user agent.");
-            }
-        }
-        else {
-            $logger->debug("User agent {$config['agent_id']} appears to exist.");
-        }
-    }
-    return array($config, true, null);
-}
-
-function fullRun($API, $config, $logger)
-{   
-    $logger->info("Inside full run");
-    $queue = new SplQueue();
-    while (true) {
-        try {
-            foreach($config['projects'] as $project_key) {
-                $res = $API->searchEndpoint($config[$project_key]["endpoint"]);
-                if ($res->count > 0) {
-                    return;
-                }
-                $queue->push($config[$project_key]['rootdir']);
-                $files = array();
-                $bulkdata = array();
-                $bulksize = 0;
-
-                // nested function 
-                $postData = function($metadata, $files, $entry, $bulksize, $bulkdata) use($API, $logger, $config, $project_key)
+        while (true) 
+        {
+            try {
+                list($respText, $status) = $this->radiamAPI->createDocumentBulk($this->project_config['endpoint'], $metadata);
+                if ($respText) 
                 {
-                    // TODO: in python agent, this is global variable, check it 
-                    $postDataLimit = 1000000;
-                    $repsText = null;
-                    $status = false;
-                    if ($metadata == null or gettype($metadata) == "array" and count($metadata) == 0) {       
+                    if (gettype($respText) == "array")
+                    {
+                        foreach($respText as $s) {
+                            // check if s is a associative array
+                            if (gettype($s) == "array" and array_keys($s) !== range(0, count($s) - 1)) {
+                                if (!$s['result']) {
+                                    $this->logger->error("Error sending file to API: {$s['docname'] {$s['result']}}");
+                                }
+                            }
+                        }
                     }
                     else {
-                        array_push($files, $entry);
-                        $metasize = mb_strlen(json_encode($metadata), "8bit");
-                        if (($metasize + $bulksize) > $postDataLimit) {
-                            list($repsText, $status) = tryConnectionInWorkerBulk($API, $config[$project_key], $logger, $bulkdata);
-                            $bulkdata = array();
-                            array_push($bulkdata, $metadata);
-                            $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
-                        }
-                        else {
-                            array_push($bulkdata, $metadata);
-                            $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
-                        }
-                    }
-                    return array($bulkdata, $bulksize, $repsText, $status);
-                };
-                while (!$queue->isEmpty()) {
-                    try {
-                        $path = $queue->pop();
-                        try {
-                            $fs = new FilesystemIterator($path);
-                            // entry includes the filename
-                            foreach ($fs as $entry) {
-                                if ($entry->isDir()) {
-                                    $queue->push($entry->getPathname());
-                                    $metadata = getDirMeta($entry->getPathname(), $config);
-                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
-                                }
-                                else if ($entry->isFile()) {
-                                    $metadata = getFileMeta($entry->getPathname(), $config, $project_key);
-                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
-                                }
-                            }
-                        } catch(\Exception $e) {
-                            $logger->warning($e);
-                        }
-                    } catch(\Exception $e) {
-                        $logger->warning($e);
-                        break;
+                        $this->logger->error("Radiam API error with index {$this->project_config['endpoint']}: {$respText}");
                     }
                 }
-                if ($bulkdata == null or gettype($bulkdata) == "array" and count($bulkdata) == 0) {
-                    $logger->info("No files to index on project {$project_key}");
-                    // TODO: fill it up
-                    $logger->info("Agent has added ");
-                    return array(null, 200);
-                }
-                else {
-                    list($repsText, $status) = tryConnectionInWorkerBulk($API, $config[$project_key], $logger, $bulkdata);
-                }
-                if ($status) {
-                    $logger->info("Finished indexing files to project {$project_key}");
-                    // TODO: fill it up
-                    $logger->info("Agent has added ");
-                }
-                else {
-                    return array($respText, $status);
-                }
+                return array($respText, $status);
+            } catch (\Exception $e) {
+                // file_put_contents("e", print_r($e, true));      
+                sleep(10);
             }
-            return array($respText, $status);
-        } catch (\Exception $e) {
-            sleep(10);
         }
     }
+
+    private function updatePath($path)
+    {   
+        $parentPath = dirname($path);
+        $metadata = $this->getDirMeta($parentPath);
+        if ($metadata != null) {
+            $this->tryConnectionInWorker($path, $metadata);
+            return array(true, $parentPath);
+        }
+        else{
+            return array(false, $parentPath);
+        }
+        return;
+    }
+
+    private function getFileMeta($path, $project_key=null)
+    {
+        try{
+            clearstatcache();
+            $stat = stat($path);
+
+            $mtime = $stat['mtime']; // Time of last modification
+            $atime = $stat['atime']; // Time of last access
+            $ctime = $stat['ctime']; // TIme of last status change
+
+            # convert times to utc for es, string in ios format
+            $mtime_utc = gmdate('c', $mtime);
+            $atime_utc = gmdate('c', $atime);
+            $ctime_utc = gmdate('c', $ctime);
+
+            # get user name
+            $owner = User::get('name');
+
+            # get group 
+            $group = $this->getGroups(User::get('id'));
+
+            # get time
+            $indextime_utc = gmdate('c', time());
+
+            # get info from path
+            $path_parts = pathinfo($path);
+            # create file metadata array
+            $filemeta = array(
+                "name" =>$path_parts['basename'],
+                "extension" => $path_parts['extension'],
+                "path_parent" => $path_parts['dirname'],
+                "path" => $path,
+                "filesize" => $stat['size'],
+                "owner" => $owner,
+                "group" => $group,
+                "last_modified" => $mtime_utc,
+                "last_access" => $atime_utc,
+                "last_change" => $ctime_utc,
+                "indexed_by" => $owner,
+                "indexing_date" => $indextime_utc,
+                "type" => "file",
+                "location" => $this->config['location_id'],
+                "agent" => $this->config['agent_id']
+            );
+        } catch (Exception $e) {
+            // file_put_contents("e", print_r($e, true));
+            return false;
+        }
+        return $filemeta; 
+    }
+
+    private function getDirMeta($path)
+    {
+        try{
+            clearstatcache();
+            $stat = stat($path);
+
+            $mtime = $stat['mtime']; // Time of last modification
+            $atime = $stat['atime']; // Time of last access
+            $ctime = $stat['ctime']; // TIme of last status change
+            
+            # convert times to utc for es, string in ios format
+            $mtime_utc = gmdate('c', $mtime);
+            $atime_utc = gmdate('c', $atime);
+            $ctime_utc = gmdate('c', $ctime);
+
+            # get user name
+            $owner = User::get('name');
+
+            # get group 
+            $group = $this->getGroups(User::get('id'));
+
+            # get time
+            $indextime_utc = gmdate('c', time());
+
+            # get info from path
+            $path_parts = pathinfo($path);
+
+            # get number of items and files in the directory
+            list($itemcount, $filecount) = $this->getDirItemsCount($path);
+            # create file metadata array
+            $dirmeta = array(
+                "name" =>$path_parts['basename'],
+                "path" => $path,
+                "path_parent" => $path_parts['dirname'],
+                "items" => $itemcount,
+                "file_num_in_dir" => $filecount,
+                "owner" => $owner,
+                "group" => $group,
+                "last_modified" => $mtime_utc,
+                "last_access" => $atime_utc,
+                "last_change" => $ctime_utc,
+                "indexed_by" => $owner,
+                "indexing_date" => $indextime_utc,
+                "type" => "directory",
+                "location" => $this->config['location_id'],
+                "agent" => $this->config['agent_id']
+            );
+        } catch (Exception $e) {
+            return false;
+        }
+        return $dirmeta;
+    }
+
+    private function getDirItemsCount($directory)
+    {   
+        if (substr($directory, -1) != DS) {
+            $directory = $directory . DS;      
+        }
+
+        $filecount = 0;
+        $itemcount = 0;
+        $files = glob($directory . "*.*");
+        if ($files){
+            $filecount = count($files);
+        }
+        $items = glob($directory . "*");
+        if ($items){
+            $itemcount = count($items);
+        }
+        return array($filecount, $itemcount);
+    }
+
 }
 
-function tryConnectionInWorkerBulk($radiamAPI, $project_config, $logger, $metadata)
-{   
-    $logger->info("In try connection in worker bulk function");
-    
-    while (true) 
-    {
-        try {
-            list($respText, $status) = $radiamAPI->createDocumentBulk($project_config['endpoint'], $metadata);
-            if ($respText) 
-            {
-                if (gettype($respText) == "array")
-                {
-                    foreach($respText as $s) {
-                        // check if s is a associative array
-                        if (gettype($s) == "array" and array_keys($s) !== range(0, count($s) - 1)) {
-                            if (!$s['result']) {
-                                $logger->error("Error sending file to API: {$s['docname'] {$s['result']}}");
-                            }
-                        }
-                    }
-                }
-                else {
-                    $logger->error("Radiam API error with index {$project_config['endpoint']}: {$respText}");
-                }
-            }
-            return array($respText, $status);
-        } catch (\Exception $e) {
-            // file_put_contents("e", print_r($e, true));      
-            sleep(10);
-        }
-    }
-}
+// /**
+//  * Check in to API as agent to set up IDs
+//  *
+//  * @param object $API The radiam API object
+//  * @param  array  $config  The radiam hubzero agent config 
+//  * @param  object  $logger  The logger
+//  * @return mixed(array boolean string) The radiam hubzero agent config, checkin status, error message
+//  */
+// function agentCheckin($API, $config, $logger) 
+// {   
+//     $defaultLocationType = "location.type.hubzero";
+//     $version = "1.2.0";
+//     $host = $config['radiam_host_url'];
+//     foreach ($config['projects'] as $project_key) {
+//         if (array_key_exists('radiam_project_uuid', $config[$project_key]) and $config[$project_key]['radiam_project_uuid']) {
+//             $config[$project_key]['endpoint'] = $host . "api/projects/" . $config[$project_key]['radiam_project_uuid'] . "/";
+//             $res = $API->searchEndpointByName('projects', $config[$project_key]['radiam_project_uuid'], "id");
+//             if (!$res or !isset($res->results) or count($res->results) == 0) {
+//                 return array($config, false, "Radiam project id {$config[$project_key]['radiam_project_uuid']} does not appear to exist - was it deleted?");
+//             }
+//         }
+//         else {
+//             return array($config, false, "No radiam project id provided. Please set it up in the Radiam Component page.");
+//         }
+
+//         // Create the location if needed
+//         if (!array_key_exists('location_id', $config)) {
+//             $res = $API->searchEndpointByName('locations', $config['location_name'], "display_name");
+//             // file_put_contents("locations_result", print_r($res, true));
+//             if ($res and isset($res->results) and count($res->results) > 0) {
+//                 $config['location_id'] = $res->results[0]->id;
+//             }
+//             else {
+//                 $res = $API->searchEndpointByName('locationtypes', $defaultLocationType, "label");
+//                 // file_put_contents("locationtypes_result", print_r($res, true));
+//                 if ($res and isset($res->results) and count($res->results) > 0) {
+//                     // file_put_contents("locationtypes_result_results", print_r($res->results, true));
+//                     $locationId = $res->results[0]->id;
+//                 }
+//                 else {
+//                     return array($config, false, "Could not look up location type ID for {$defaultLocationType}");
+//                 }
+//                 $hostname = gethostname();
+//                 $newLocation = array(
+//                     "display_name" => $config['location_name'],
+//                     "host_name"    => $hostname,
+//                     "location_type"=> $locationId
+//                 );
+//                 $res = $API->createLocation($newLocation);
+//                 // file_put_contents("create_location_result",print_r($res, true));
+//                 if ($res and isset($res->id)) {
+//                     $config['location_id'] = $res->id;
+//                 }
+//                 else {
+//                     return array($config, false, "Tried to create a new location, but the API call failed.");
+//                 }
+//             }
+//             // Write the location id to the radconfig table
+//             $db = App::get('db');
+//             $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`) 
+//                     VALUES ('location_id', '{$config['location_id']}', now());";
+//             $db->setQuery($sql);
+//             $db->query();
+//         }
+//         // Create the user agent if needed
+//         $res = $API->searchEndpointByName('useragents', $config['agent_id'], "id");
+//         if (!$res or !isset($res->results) or count($res->results) == 0) {
+//             $logger->info("Useragent {$config['agent_id']} was not found in the remote system; creating it now.");
+//             $res = $API->getLoggedInUser();
+
+//             if ($res and isset($res->id)) {
+//                 $currentUserId = $res->id;
+//                 $projectConfigList = array();
+//                 //TODO: add info into project config list
+//                 // for p in config['projects']['project_list']:
+//                 //     project_config_list.append({
+//                 //         "project": config[p]['name'],
+//                 //         "config": {"rootdir": config[p]['rootdir']}
+//                 //     })
+//                 $newAgent = array(
+//                     "id" => $config['agent_id'],
+//                     "user" => $currentUserId,
+//                     "version" => $version,
+//                     "location" => $config['location_id'],
+//                     "project_config_list" => $projectConfigList
+//                 );
+//                 $logger->debug(sprintf("JSON: %s", json_encode($newAgent)));
+//                 $res = $API->createUserAgent($newAgent);
+//                 // file_put_contents("create_user_agent_result",print_r($res, true));
+//                 if (!$res or !isset($res->id)) {
+//                     return array($config, false, "Tried to create a new user agent, but the API call failed.");
+//                 }
+//                 else {
+//                     $logger->info("User agent {$config['agent_id']} created.");
+//                 }
+//             }
+//             else {
+//                 $logger->error("Could not determine current logged in user to create user agent.");
+//                 return array($config, false, "Could not determine current logged in user to create user agent.");
+//             }
+//         }
+//         else {
+//             $logger->debug("User agent {$config['agent_id']} appears to exist.");
+//         }
+//     }
+//     return array($config, true, null);
+// }

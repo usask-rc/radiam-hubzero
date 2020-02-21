@@ -58,6 +58,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 			foreach($config['projects'] as $project_key) {
 				try {
 					$queueHelper = new QueueHelper($config, $project_key, $logger);
+					$queueHelper->fullRun();
 					$queueHelper->processQueue();
 				} catch (Exception $e) {
 					$logger->error($e);
