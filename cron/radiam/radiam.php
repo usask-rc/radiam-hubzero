@@ -1,20 +1,18 @@
 <?php
 /**
- * @package    hubzero-cms
- * @copyright  Copyright 2005-2019 HUBzero Foundation, LLC.
+ * @copyright  Copyright 2019 University of Saskatchewan and Simon Fraser University
  * @license    http://opensource.org/licenses/MIT MIT
  */
 
 // No direct access
 defined('_HZEXEC_') or die();
 
-use Components\Radiam\Helpers\QueueHelper;
-use Components\Radiam\Models\Radtoken;
+use Components\Radiam\Helpers\RadiamAgent;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
 
-require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'QueueHelper.php';
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'RadiamAgent.php';
 
 /**
  * Cron plugin for radiam
@@ -57,11 +55,14 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		if ($loadConfigStatus) {
 			foreach($config['projects'] as $project_key) {
 				try {
-					$queueHelper = new QueueHelper($config, $project_key, $logger);
-					$queueHelper->fullRun();
-					$queueHelper->processQueue();
+					$logger->info("Start crawling for Project {$project_key}.");
+					$agent = new RadiamAgent($config, $project_key, $logger);
+					$agent->fullRun();
+					$agent->processQueue();
 				} catch (Exception $e) {
 					$logger->error($e);
+				} finally {
+					$logger->info("Finish crawling for Project {$project_key}.");
 				}
 			}
 			return true;
@@ -71,6 +72,13 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		}
 	}
 	
+
+	/**
+	 * Load radiam agent configuration from database
+	 *
+	 * @param object $logger
+	 * @return array $config, $status
+	 */
 	private function _loadConfig($logger)
 	{
 		// Radiam Config     
@@ -127,12 +135,17 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 			$config[$project->project_id] = $project_info;
 			array_push($config['projects'], $project->project_id);
 		}
-		// file_put_contents("config.txt", print_r($config, true));
 
 		return array($config, true);
 	}
 
-	protected function _setLogger()
+
+	/**
+	 * Set up the logger
+	 *
+	 * @return object $logger The logger
+	 */
+	private function _setLogger()
     {
         $logger = new Logger(Config::get('application_env'));
         $streamHandler = new StreamHandler(Config::get('log_path', PATH_APP . DS . 'logs') . '/radiam.log', Logger::DEBUG);
@@ -144,7 +157,14 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 
         return $logger;
 	}
-	protected function generateUuid()
+
+
+	/**
+	 * Generate an uuid
+	 *
+	 * @return string
+	 */
+	private function generateUuid()
 	{
 		return sprintf(
 			'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',

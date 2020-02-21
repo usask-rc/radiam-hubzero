@@ -1,7 +1,6 @@
 <?php
 /**
- * @package    hubzero-cms
- * @copyright  Copyright 2005-2019 HUBzero Foundation, LLC.
+ * @copyright  Copyright 2019 University of Saskatchewan and Simon Fraser University
  * @license    http://opensource.org/licenses/MIT MIT
  */
 
@@ -22,10 +21,10 @@ require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'radiam_api.
 defined('_HZEXEC_') or die('Restricted access');
 
 /**
- * Raidam process radqueue table helper functions
+ * Raidam Agent Class
  *
  */
-class QueueHelper
+class RadiamAgent
 {   
     /**
      * The logger
@@ -101,8 +100,6 @@ class QueueHelper
         $this->logger = $logger;
         $this->config = $config;
 
-        $this->logger->info("Construct the queue processor for project {$project_key}");
-
         // Initialize DB
 		$this->_db = App::get('db');
         
@@ -132,7 +129,6 @@ class QueueHelper
             $this->logger->error($errMessage);
             throw new Exception("Agent failed to checkin with error message {$errMessage}.");
         }
-        $this->logger->info("Finish constructor");
     }
 
     /**
@@ -242,6 +238,8 @@ class QueueHelper
         }
         return array(true, null);
     }
+
+
     /**
      * Crawl the entire directory for all projects that with no files indexed
      * 
@@ -347,8 +345,6 @@ class QueueHelper
     {	
         $this->logger->info('Start to process file event queue.');
 
-        // fullRun($this->radiamAPI, $this->config, $this->logger);
-
         $radiamQueue = $this->getRadiamQueue();
         if ($radiamQueue)
         {
@@ -368,6 +364,8 @@ class QueueHelper
             }
         }
     }
+
+
     /**
      * Get all the records in radqueue table
      *
@@ -388,6 +386,8 @@ class QueueHelper
         $radiamQueue = $this->_db->loadObjectList();
         return $radiamQueue;
     }
+
+
     /**
      * Delete a row by id in radqueue table
      *
@@ -426,7 +426,7 @@ class QueueHelper
      * @return boolean Whether the data is sent to the server successfully or not
      */
     private function onCreated($event)
-    {
+    {   
         return $this->onCreateModify($event, 'Created');
     }
 
@@ -448,7 +448,8 @@ class QueueHelper
      * @return boolean Whether the data is sent to the server successfully or not
      */
     private function onMoved($event)
-    {
+    {   
+        $this->logger->info("Moved event has been captured. Handling it...");
         try {
             $srcPath = $event->src_path;
             // add a new field into the radiam queue table
@@ -489,7 +490,8 @@ class QueueHelper
         } catch(Exception $e) {
             $this->logger->error($e);
             return false;
-        }     
+        }  
+        $this->logger->info("Finish handling a move event.");   
         return true;
     }
 
@@ -502,7 +504,7 @@ class QueueHelper
      */
     private function onDeleted($event) 
     {
-        $this->logger->info("In onDeleted function");
+        $this->logger->info("Deleted event has been captured. Handling it...");
         try {
             $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $event->src_path);
             $what = 'unknown';
@@ -535,6 +537,7 @@ class QueueHelper
             $this->logger->error($e);
             return false;
         }
+        $this->logger->info("Finish handling a delete event.");
         return true;
     }
 
@@ -546,7 +549,8 @@ class QueueHelper
      * @return boolean Whether the data is sent to the server successfully or not
      */
     private function onCreateModify($event, $action)
-    {
+    {   
+        $this->logger->info("{$action} event has been captured. Handling it...");
         try {
             $path = $event->src_path;
             // determine whether the event is for a file or directory
@@ -580,25 +584,10 @@ class QueueHelper
             $this->logger->error($e);
             return false;
         }
+        $this->logger->info("Finish handling a {$action} event.");
         return true;
     }
 
-    /**
-     * Helper function: get the project owner id by project id
-     *
-     * @param int $projectId
-     * @return int
-     */
-    private function getProjectOwner($projectId) 
-	{
-        // TODO: decide whether should use oneOrFail or oneOrNew
-        $project = Project::oneOrFail(intval($projectId));
-        if ($project == null) {
-            return null;
-        }
-		$ownerId = $project->get('owned_by_user');
-		return $ownerId;
-    }
     
     /**
      * Post to Radiam API on different file system events
@@ -621,6 +610,24 @@ class QueueHelper
             $result = $this->onDeleted($event);
         }
         return $result;
+    }
+
+
+    /**
+     * Helper function: get the project owner id by project id
+     *
+     * @param int $projectId
+     * @return int
+     */
+    private function getProjectOwner($projectId) 
+	{
+        // TODO: decide whether should use oneOrFail or oneOrNew
+        $project = Project::oneOrFail(intval($projectId));
+        if ($project == null) {
+            return null;
+        }
+		$ownerId = $project->get('owned_by_user');
+		return $ownerId;
     }
 
 
@@ -650,6 +657,12 @@ class QueueHelper
         return $result->title;
     }
 
+    /**
+     * Get the radiam token by user id
+     *
+     * @param int $userId
+     * @return object $token
+     */
     private function getToken($userId)
     {
         $token = null;
@@ -670,33 +683,26 @@ class QueueHelper
         }
     }
 
+    /**
+     * Connect to the Radiam Server to create or delete a document
+     * 
+     * @param string $path The path of the document
+     * @param array $metadata The metadata of the document
+     * @return void
+     */
     private function tryConnectionInWorker($path, $metadata=null)
     {   
-        $this->logger->info("In try connection in worker function");
-        
         while (true) 
         {
             try {
-                $this->logger->info("Before calling search endpoint by path");
                 $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $path);
-                $this->logger->info("After calling search endpoint by path");
-                // file_put_contents("endpoint_path_result", print_r($res, true));
                 if ($res != null) 
                 {
                     if ($metadata != null)
                     {
-                        if ($res->count === 0)
-                        {
-                            $this->radiamAPI->createDocument($this->project_config['endpoint'], $metadata);
-                            $metadataStr = json_encode($metadata);
-                            $this->logger->debug("POSTing to API: {$metadataStr}");
-                        }
-                        else
-                        {
-                            $this->radiamAPI->createDocument($this->project_config['endpoint'], $metadata);
-                            $metadataStr = json_encode($metadata);
-                            $this->logger->debug("POSTing to API: {$metadataStr}");
-                        }
+                        $this->radiamAPI->createDocument($this->project_config['endpoint'], $metadata);
+                        $metadataStr = json_encode($metadata);
+                        $this->logger->debug("POSTing to API: {$metadataStr}");
                     }
                     else
                     {
@@ -714,6 +720,12 @@ class QueueHelper
         }
     }
 
+    /**
+     * Connect to the Radiam Server to create multiple documents
+     * 
+     * @param array $metadata The metadata of the file or folder
+     * @return void
+     */
     private function tryConnectionInWorkerBulk($metadata)
     {   
         $this->logger->info("In try connection in worker bulk function");
@@ -747,6 +759,13 @@ class QueueHelper
         }
     }
 
+    
+    /**
+     * Update the parent path metadata
+     *
+     * @param string $path The path of the document
+     * @return array $status, $parentPath
+     */
     private function updatePath($path)
     {   
         $parentPath = dirname($path);
@@ -761,6 +780,14 @@ class QueueHelper
         return;
     }
 
+
+    /**
+     * Generate the metadata of a file
+     *
+     * @param string $path The path of the file
+     * @param int $project_key
+     * @return array $filemeta The metadata of the file 
+     */
     private function getFileMeta($path, $project_key=null)
     {
         try{
@@ -807,11 +834,18 @@ class QueueHelper
             );
         } catch (Exception $e) {
             // file_put_contents("e", print_r($e, true));
-            return false;
+            return null;
         }
         return $filemeta; 
     }
 
+
+    /**
+     * Generate the metadata of a directory
+     *
+     * @param string $path The path of the directory
+     * @return array $dirmeta The metadata of the directory 
+     */
     private function getDirMeta($path)
     {
         try{
@@ -860,11 +894,18 @@ class QueueHelper
                 "agent" => $this->config['agent_id']
             );
         } catch (Exception $e) {
-            return false;
+            return null;
         }
         return $dirmeta;
     }
 
+
+    /**
+     * Helper function: Get the number of files and items in a directory
+     *
+     * @param string $directory
+     * @return array $filecount, $itemcount
+     */
     private function getDirItemsCount($directory)
     {   
         if (substr($directory, -1) != DS) {
@@ -883,113 +924,4 @@ class QueueHelper
         }
         return array($filecount, $itemcount);
     }
-
 }
-
-// /**
-//  * Check in to API as agent to set up IDs
-//  *
-//  * @param object $API The radiam API object
-//  * @param  array  $config  The radiam hubzero agent config 
-//  * @param  object  $logger  The logger
-//  * @return mixed(array boolean string) The radiam hubzero agent config, checkin status, error message
-//  */
-// function agentCheckin($API, $config, $logger) 
-// {   
-//     $defaultLocationType = "location.type.hubzero";
-//     $version = "1.2.0";
-//     $host = $config['radiam_host_url'];
-//     foreach ($config['projects'] as $project_key) {
-//         if (array_key_exists('radiam_project_uuid', $config[$project_key]) and $config[$project_key]['radiam_project_uuid']) {
-//             $config[$project_key]['endpoint'] = $host . "api/projects/" . $config[$project_key]['radiam_project_uuid'] . "/";
-//             $res = $API->searchEndpointByName('projects', $config[$project_key]['radiam_project_uuid'], "id");
-//             if (!$res or !isset($res->results) or count($res->results) == 0) {
-//                 return array($config, false, "Radiam project id {$config[$project_key]['radiam_project_uuid']} does not appear to exist - was it deleted?");
-//             }
-//         }
-//         else {
-//             return array($config, false, "No radiam project id provided. Please set it up in the Radiam Component page.");
-//         }
-
-//         // Create the location if needed
-//         if (!array_key_exists('location_id', $config)) {
-//             $res = $API->searchEndpointByName('locations', $config['location_name'], "display_name");
-//             // file_put_contents("locations_result", print_r($res, true));
-//             if ($res and isset($res->results) and count($res->results) > 0) {
-//                 $config['location_id'] = $res->results[0]->id;
-//             }
-//             else {
-//                 $res = $API->searchEndpointByName('locationtypes', $defaultLocationType, "label");
-//                 // file_put_contents("locationtypes_result", print_r($res, true));
-//                 if ($res and isset($res->results) and count($res->results) > 0) {
-//                     // file_put_contents("locationtypes_result_results", print_r($res->results, true));
-//                     $locationId = $res->results[0]->id;
-//                 }
-//                 else {
-//                     return array($config, false, "Could not look up location type ID for {$defaultLocationType}");
-//                 }
-//                 $hostname = gethostname();
-//                 $newLocation = array(
-//                     "display_name" => $config['location_name'],
-//                     "host_name"    => $hostname,
-//                     "location_type"=> $locationId
-//                 );
-//                 $res = $API->createLocation($newLocation);
-//                 // file_put_contents("create_location_result",print_r($res, true));
-//                 if ($res and isset($res->id)) {
-//                     $config['location_id'] = $res->id;
-//                 }
-//                 else {
-//                     return array($config, false, "Tried to create a new location, but the API call failed.");
-//                 }
-//             }
-//             // Write the location id to the radconfig table
-//             $db = App::get('db');
-//             $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`) 
-//                     VALUES ('location_id', '{$config['location_id']}', now());";
-//             $db->setQuery($sql);
-//             $db->query();
-//         }
-//         // Create the user agent if needed
-//         $res = $API->searchEndpointByName('useragents', $config['agent_id'], "id");
-//         if (!$res or !isset($res->results) or count($res->results) == 0) {
-//             $logger->info("Useragent {$config['agent_id']} was not found in the remote system; creating it now.");
-//             $res = $API->getLoggedInUser();
-
-//             if ($res and isset($res->id)) {
-//                 $currentUserId = $res->id;
-//                 $projectConfigList = array();
-//                 //TODO: add info into project config list
-//                 // for p in config['projects']['project_list']:
-//                 //     project_config_list.append({
-//                 //         "project": config[p]['name'],
-//                 //         "config": {"rootdir": config[p]['rootdir']}
-//                 //     })
-//                 $newAgent = array(
-//                     "id" => $config['agent_id'],
-//                     "user" => $currentUserId,
-//                     "version" => $version,
-//                     "location" => $config['location_id'],
-//                     "project_config_list" => $projectConfigList
-//                 );
-//                 $logger->debug(sprintf("JSON: %s", json_encode($newAgent)));
-//                 $res = $API->createUserAgent($newAgent);
-//                 // file_put_contents("create_user_agent_result",print_r($res, true));
-//                 if (!$res or !isset($res->id)) {
-//                     return array($config, false, "Tried to create a new user agent, but the API call failed.");
-//                 }
-//                 else {
-//                     $logger->info("User agent {$config['agent_id']} created.");
-//                 }
-//             }
-//             else {
-//                 $logger->error("Could not determine current logged in user to create user agent.");
-//                 return array($config, false, "Could not determine current logged in user to create user agent.");
-//             }
-//         }
-//         else {
-//             $logger->debug("User agent {$config['agent_id']} appears to exist.");
-//         }
-//     }
-//     return array($config, true, null);
-// }
