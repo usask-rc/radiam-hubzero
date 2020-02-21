@@ -187,10 +187,6 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 				else {
 					$this->_writeToDb($this->projectId, $path, $this->_actionMapping[$this->action]);
 				}
-				// TODO: check if we need this
-				// // Uploading new file means modifying the parent path
-				// $parentPath = dirname($path);
-				// $this->_writeToDb($this->projectId, $parentPath, $this->_actionMapping['update']);
 			}
 		}
 	}
