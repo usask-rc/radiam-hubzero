@@ -108,6 +108,7 @@ class RadiamAgent
             $this->logger->error('Project does not exist.');
             throw new Exception('Project does not exist.');
         } 
+        $this->userId = $userId;
 
         $tokens = $this->getToken($userId);
         if ($tokens == null) {
@@ -804,10 +805,11 @@ class RadiamAgent
             $ctime_utc = gmdate('c', $ctime);
 
             # get user name
-            $owner = User::get('name');
+            $ownerObject = User::oneOrFail($this->userId);
+            $owner = $ownerObject->name;
 
             # get group 
-            $group = $this->getGroups(User::get('id'));
+            $group = $this->getGroups($this->userId);
 
             # get time
             $indextime_utc = gmdate('c', time());
@@ -862,10 +864,11 @@ class RadiamAgent
             $ctime_utc = gmdate('c', $ctime);
 
             # get user name
-            $owner = User::get('name');
+            $ownerObject = User::oneOrFail($this->userId);
+            $owner = $ownerObject->name;
 
             # get group 
-            $group = $this->getGroups(User::get('id'));
+            $group = $this->getGroups($this->userId);
 
             # get time
             $indextime_utc = gmdate('c', time());
