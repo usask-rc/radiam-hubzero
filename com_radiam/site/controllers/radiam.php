@@ -95,14 +95,13 @@ class Radiam extends SiteController
         $password = Request::getString('passwd', null, 'post');
 
         if (!User::isGuest())
-        {
-            $token = Radtoken::oneOrNew(User::get('id'));
-            if ($token != null && !$token->expired($this))
+        {   
+            $token = Radtoken::one(User::get('id'));
+            if ($token !== false && !$token->expired($this))
             {
                 $this->redirect($url='display', null, null);
             }
-
-            elseif ($token == null) {
+            else if($token === false) {
                 if ($username != null && $password != null)
                 {   
                     $this->config->set('clientid', $username);
@@ -130,10 +129,17 @@ class Radiam extends SiteController
                 }
             }
             else {
-                $token = $this->getToken($this);
-                $this->redirect($url='display', null, null);
+                $token->refresh($this);
+                // $this->redirect($url='display', null, null);   
             }
         }
+        else {        
+            // Output HTML
+            $this->view
+                 ->set('config', $this->config)
+                 ->set('filters', $filters)
+                 ->display();
+        }        
     }
 
     public function getUsers($access_token, $radiam_url) {
@@ -254,9 +260,8 @@ class Radiam extends SiteController
             return false;
         }
 
-        $token = Radtoken::oneOrNew(User::get('id'));
-
-        if ($token == null)
+        $token = Radtoken::one(User::get('id'));
+        if ($token === false)
         {
             return false;
         }
