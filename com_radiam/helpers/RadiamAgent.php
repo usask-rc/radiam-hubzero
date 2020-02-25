@@ -676,7 +676,7 @@ class RadiamAgent
         }
         $this->logger->info("Get token for user {$userId}");
         $token = Radtoken::one($userId);
-        $this->logger->info("Token is {$token}");
+        $this->logger->info("Token is {$token->{"access_token"}}");
         if ($token === false)
         {
             return null;
