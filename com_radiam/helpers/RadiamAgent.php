@@ -671,14 +671,12 @@ class RadiamAgent
     {
         $token = null;
         // $user = User::getInstance($userId);
-        if(User::isGuest())
-        {   
-            $this->logger->info("User is guest.");
-            return null;
-        }
-        $this->logger->info("Get token for user {$userId}");
+        // if(User::isGuest())
+        // {   
+        //     $this->logger->info("User is guest.");
+        //     return null;
+        // }
         $token = Radtoken::one($userId);
-        $this->logger->info("Token is {$token->{"access_token"}}");
         if ($token === false)
         {
             return null;
