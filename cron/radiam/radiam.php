@@ -186,9 +186,10 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
      */
     private function updateRadiamQueue()
     {
-        $sql = "UPDATE `#__radiam_radqueue`
+		$db = App::get('db');
+		$sql = "UPDATE `#__radiam_radqueue`
                 SET `last_modified` = now()";
-        $this->_db->setQuery($sql);
-        $this->_db->query();
+        $db->setQuery($sql);
+        $db->query();
     }
 }
