@@ -113,7 +113,6 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 					$this->_rename();
 					break;	
 			}		
-			// processQueue($this->projectId);
 		}
 		return;
 	}
@@ -472,77 +471,4 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 
 		return $combined;
 	}
-}
-
-function processQueue($projectId)
-{	
-	
-	$radiamQueue = getRadiamQueue($projectId);
-	if ($radiamQueue !== false)
-	{
-		foreach ($radiamQueue as $event)
-		{	
-			
-			$result = postToRadiamApi($event);
-			$id = $event->id;
-			if ($result === 'success')
-			{	
-				deleteRadiamQueueRow($id);
-			}
-			elseif ($result === 'fail')
-			{
-				updateRadiamQueue($id);
-			}
-		}
-	}
-}
-
-function getRadiamQueue($projectId)
-{
-	$db = App::get('db');
-	$sql = "SELECT `id`, `project_id`, `src_path`, `action`
-			FROM `#__radiam_radqueue`
-			WHERE `project_id` = '{$projectId}'
-			ORDER BY `created` ASC";
-	$db->setQuery($sql);
-	$db->query();
-
-	if (!$db->getNumRows())
-	{
-		return false;
-	}
-
-	$radiamQueue = $db->loadObjectList();
-	return $radiamQueue;
-}
-
-function deleteRadiamQueueRow($id)
-{
-	$db = App::get('db');
-	$sql = "DELETE FROM `#__radiam_radqueue`
-			WHERE `id` = '{$id}'";
-	$db->setQuery($sql);
-	$db->query();
-}
-
-function updateRadiamQueue($id)
-{
-	$db = App::get('db');
-	$sql = "UPDATE `#__radiam_radqueue`
-			SET `last_modified` = now()
-			WHERE `id` = '{$id}'";
-	$db->setQuery($sql);
-	$db->query();
-}
-
-function postToRadiamApi($event)
-{
-	return testResponse($event);
-}
-
-function testResponse($event)
-{
-	$responses = array('fail', 'success');
-	$resp = $responses[array_rand($responses, 1)];
-	return $resp;
 }
