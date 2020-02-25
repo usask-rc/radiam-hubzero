@@ -162,6 +162,11 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 		{	
 			// Regular upload
 			$upload = Request::getArray('upload', '', 'files');
+			if (empty($upload['name']) or $upload['name'][0] == '')
+			{
+				// $this->setError(Lang::txt('COM_PROJECTS_UPLOAD_NO_FILES'));
+				return false;
+			}
 			for ($i=0; $i < count($upload['name']); $i++) {	
 				$file = $upload['name'][$i];
 				$file = Filesystem::clean(trim($file));
