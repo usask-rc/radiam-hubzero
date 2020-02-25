@@ -110,6 +110,7 @@ class RadiamAgent
         } 
         $this->userId = $userId;
 
+        $this->logger->info("Inside constructor, user id is {$userId}");
         $tokens = $this->getToken($userId);
 
         if ($tokens == null) {
@@ -671,7 +672,8 @@ class RadiamAgent
         $token = null;
         // $user = User::getInstance($userId);
         if(User::isGuest())
-        {
+        {   
+            $this->logger->info("User is guest.");
             return null;
         }
         $this->logger->info("Get token for user {$userId}");
