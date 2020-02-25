@@ -266,7 +266,7 @@ class RadiamAgent
                 $bulksize = 0;
 
                 // nested function 
-                $postData = function($metadata, $files, $entry, $bulksize, $bulkdata)
+                $postData = function($metadata, $entry, $bulksize, $bulkdata) use ($files)
                 {
                     $repsText = null;
                     $status = false;
@@ -329,7 +329,7 @@ class RadiamAgent
                     return array($respText, $status);
                 }
             } catch (Exception $e) {
-                file_put_contents("e", print_r($e, true));
+                // file_put_contents("e", print_r($e, true));
                 throw new Exception($e);
                 sleep(10);
             }
