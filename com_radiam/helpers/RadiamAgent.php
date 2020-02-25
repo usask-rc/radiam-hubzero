@@ -124,7 +124,7 @@ class RadiamAgent
 
         list($checkinStatus, $errMessage) = $this->agentCheckin();
         $this->project_config = $this->config[$this->project_key];
-        // file_put_contents("this_config", print_r($this->config, true));
+        file_put_contents("this_config", print_r($this->config, true));
         
         if (!$checkinStatus) {
             $this->logger->error($errMessage);
