@@ -379,6 +379,7 @@ class RadiamAgent
     {
         $sql = "SELECT `id`, `project_id`, `src_path`, `dest_path`, `action`
                 FROM `#__radiam_radqueue`
+                WHERE `project_id` = '{$this->project_key}'
                 ORDER BY `created` ASC";
         $this->_db->setQuery($sql);
         $this->_db->query();
