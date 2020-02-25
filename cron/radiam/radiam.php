@@ -60,6 +60,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 					$agent->fullRun();
 					$agent->processQueue();
 				} catch (Exception $e) {
+					$this->updateRadiamQueue();
 					$logger->error($e);
 				} finally {
 					$logger->info("Finish crawling for Project {$project_key}.");
@@ -177,4 +178,17 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 			mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
 		);
 	}
+
+	/**
+     * Update the last_modified field for all records in radqueue table
+     *
+     * @return void
+     */
+    private function updateRadiamQueue()
+    {
+        $sql = "UPDATE `#__radiam_radqueue`
+                SET `last_modified` = now()";
+        $this->_db->setQuery($sql);
+        $this->_db->query();
+    }
 }
