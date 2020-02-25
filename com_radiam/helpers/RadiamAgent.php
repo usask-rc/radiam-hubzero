@@ -191,8 +191,9 @@ class RadiamAgent
                 }
                 // Write the location id to the radconfig table
                 $db = App::get('db');
-                $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`) 
-                        VALUES ('location_id', '{$this->config['location_id']}', now());";
+                $currentUserId = User::get('id');
+                $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
+                        VALUES ('location_id', '{$this->config['location_id']}', now(), $currentUserId);";
                 $db->setQuery($sql);
                 $db->query();
             }
@@ -805,6 +806,7 @@ class RadiamAgent
             $ctime_utc = gmdate('c', $ctime);
 
             # get user name
+            // $owner = User::get('name');
             $ownerObject = User::oneOrFail($this->userId);
             $owner = $ownerObject->name;
 

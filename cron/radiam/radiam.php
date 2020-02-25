@@ -100,16 +100,18 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 
 		if (!array_key_exists('agent_id', $config)) {
 			$config['agent_id'] = $this->generateUuid();
-			$sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`) 
-					VALUES ('agent_id', '{$config['agent_id']}', now());";
+			$currentUserId = User::get('id');
+			$sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
+					VALUES ('agent_id', '{$config['agent_id']}', now(), $currentUserId);";
 			$db->setQuery($sql);
 			$db->query();
 		}
 
 		if (!array_key_exists('location_name', $config)) {
 			$config['location_name'] = gethostname();
-			$sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`) 
-					VALUES ('location_name', '{$config['location_name']}', now());";
+			$currentUserId = User::get('id');
+			$sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
+					VALUES ('location_name', '{$config['location_name']}', now(), $currentUserId);";
 			$db->setQuery($sql);
 			$db->query();
 		}

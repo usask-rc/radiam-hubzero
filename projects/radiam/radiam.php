@@ -85,26 +85,13 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 			$targetActions = array("save", "saveprov", "delete", "move", "rename", "savedir");
 		}		
 
-		// // Trigger Radiam Component if uploading, deleteing, moving or renaming files, creating new directories
-		// if (in_array($action, $targetActions, true)) 
-		// {
-		// 	// FOR TESTING ACTION PURPOSE
-		// 	// $sql_test = "INSERT INTO `#__radiam_radprojects` (`radiam_project_uuid`, `radiam_user_uuid`, `radiam_token`, `created`)
-		// 	// 			 VALUES ('{$action}', '{$orderingFilesPlg}', '{$orderingRadiamPlg}', now())";
-		// 	// $db->setQuery($sql_test);
-		// 	// $db->execute(); 
-
-		// 	// Update the last files event time
-		// 	$sql = "UPDATE `#__radiam_radconfigs` SET `last_run`=now() WHERE `configname`='radiam_host_url'";
-		// 	$db->setQuery($sql);
-		// 	$db->execute();  
-		// }
-
+		// Trigger Radiam Component if uploading, deleteing, moving or renaming files, creating new directories
 		// File actions
 		if (in_array($action, $targetActions, true)) 
 		{	
 			// Update the last files event time
-			$sql = "UPDATE `#__radiam_radconfigs` SET `last_run`=now() WHERE `configname`='radiam_host_url'";
+			// TODO: It seems that the field last_run is not needed
+			$sql = "UPDATE `#__radiam_radconfigs` SET `last_run`=now()";
 			$this->db->setQuery($sql);
 			$this->db->execute();  
 			
