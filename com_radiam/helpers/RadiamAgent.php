@@ -625,9 +625,8 @@ class RadiamAgent
      */
     private function getProjectOwner($projectId) 
 	{
-        // TODO: decide whether should use oneOrFail or oneOrNew
-        $project = Project::oneOrFail(intval($projectId));
-        if ($project == null) {
+        $project = Project::one(intval($projectId));
+        if ($project === false) {
             return null;
         }
 		$ownerId = $project->get('owned_by_user');
