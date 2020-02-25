@@ -670,7 +670,8 @@ class RadiamAgent
     private function getToken($userId)
     {
         $token = null;
-        // $user = User::getInstance($userId);
+
+        // Cron job will return here if checking whether the user is a guest
         // if(User::isGuest())
         // {   
         //     $this->logger->info("User is guest.");
