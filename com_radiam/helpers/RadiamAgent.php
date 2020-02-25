@@ -881,7 +881,7 @@ class RadiamAgent
             $path_parts = pathinfo($path);
 
             # get number of items and files in the directory
-            list($itemcount, $filecount) = $this->getDirItemsCount($path);
+            list($filecount, $itemcount) = $this->getDirItemsCount($path);
             # create file metadata array
             $dirmeta = array(
                 "name" =>$path_parts['basename'],
