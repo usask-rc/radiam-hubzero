@@ -298,11 +298,11 @@ class RadiamAgent
                                 if ($entry->isDir()) {
                                     $queue->push($entry->getPathname());
                                     $metadata = $this->getDirMeta($entry->getPathname());
-                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
+                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $entry, $bulksize, $bulkdata);
                                 }
                                 else if ($entry->isFile()) {
                                     $metadata = $this->getFileMeta($entry->getPathname(), $this->project_key);
-                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
+                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $entry, $bulksize, $bulkdata);
                                 }
                             }
                         } catch(Exception $e) {
