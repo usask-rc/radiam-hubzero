@@ -111,6 +111,7 @@ class RadiamAgent
         $this->userId = $userId;
 
         $tokens = $this->getToken($userId);
+
         if ($tokens == null) {
             $this->logger->error('Please login first.');
             throw new Exception('Please login first.');
@@ -673,9 +674,10 @@ class RadiamAgent
         {
             return null;
         }
-        $token = Radtoken::oneOrNew($userId);
-
-        if ($token == null)
+        $this->logger->info("Get token for user {$userId}");
+        $token = Radtoken::one($userId);
+        $this->logger->info("Token is {$token}");
+        if ($token === false)
         {
             return null;
         }
