@@ -147,98 +147,96 @@ class RadiamAgent
         $defaultLocationType = "location.type.hubzero";
         $version = "1.2.0";
         $host = $this->config['radiam_host_url'];
-        foreach ($this->config['projects'] as $project_key) {
-            if (array_key_exists('radiam_project_uuid', $this->config[$project_key]) and $this->config[$project_key]['radiam_project_uuid']) {
-                $this->config[$project_key]['endpoint'] = $host . "api/projects/" . $this->config[$project_key]['radiam_project_uuid'] . "/";
-                $res = $this->radiamAPI->searchEndpointByName('projects', $this->config[$project_key]['radiam_project_uuid'], "id");
-                if (!$res or !isset($res->results) or count($res->results) == 0) {
-                    return array(false, "Radiam project id {$this->config[$project_key]['radiam_project_uuid']} does not appear to exist - was it deleted?");
-                }
-            }
-            else {
-                return array(false, "No radiam project id provided. Please set it up in the Radiam Component page.");
-            }
-
-            // Create the location if needed
-            if (!array_key_exists('location_id', $this->config)) {
-                $res = $this->radiamAPI->searchEndpointByName('locations', $this->config['location_name'], "display_name");
-                // file_put_contents("locations_result", print_r($res, true));
-                if ($res and isset($res->results) and count($res->results) > 0) {
-                    $this->config['location_id'] = $res->results[0]->id;
-                }
-                else {
-                    $res = $this->radiamAPI->searchEndpointByName('locationtypes', $defaultLocationType, "label");
-                    // file_put_contents("locationtypes_result", print_r($res, true));
-                    if ($res and isset($res->results) and count($res->results) > 0) {
-                        // file_put_contents("locationtypes_result_results", print_r($res->results, true));
-                        $locationId = $res->results[0]->id;
-                    }
-                    else {
-                        return array(false, "Could not look up location type ID for {$defaultLocationType}");
-                    }
-                    $hostname = gethostname();
-                    $newLocation = array(
-                        "display_name" => $this->config['location_name'],
-                        "host_name"    => $hostname,
-                        "location_type"=> $locationId
-                    );
-                    $res = $this->radiamAPI->createLocation($newLocation);
-                    // file_put_contents("create_location_result",print_r($res, true));
-                    if ($res and isset($res->id)) {
-                        $this->config['location_id'] = $res->id;
-                    }
-                    else {
-                        return array(false, "Tried to create a new location, but the API call failed.");
-                    }
-                }
-                // Write the location id to the radconfig table
-                $db = App::get('db');
-                $currentUserId = User::get('id');
-                $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
-                        VALUES ('location_id', '{$this->config['location_id']}', now(), $currentUserId);";
-                $db->setQuery($sql);
-                $db->query();
-            }
-            // Create the user agent if needed
-            $res = $this->radiamAPI->searchEndpointByName('useragents', $this->config['agent_id'], "id");
+        if (array_key_exists('radiam_project_uuid', $this->config[$this->project_key]) and $this->config[$this->project_key]['radiam_project_uuid']) {
+            $this->config[$this->project_key]['endpoint'] = $host . "api/projects/" . $this->config[$this->project_key]['radiam_project_uuid'] . "/";
+            $res = $this->radiamAPI->searchEndpointByName('projects', $this->config[$this->project_key]['radiam_project_uuid'], "id");
             if (!$res or !isset($res->results) or count($res->results) == 0) {
-                $this->logger->info("Useragent {$this->config['agent_id']} was not found in the remote system; creating it now.");
-                $res = $this->radiamAPI->getLoggedInUser();
+                return array(false, "Radiam project id {$this->config[$this->project_key]['radiam_project_uuid']} does not appear to exist - was it deleted?");
+            }
+        }
+        else {
+            return array(false, "No radiam project id provided. Please set it up in the Radiam Component page.");
+        }
 
-                if ($res and isset($res->id)) {
-                    $currentUserId = $res->id;
-                    $projectConfigList = array();
-                    //TODO: add info into project config list
-                    // for p in config['projects']['project_list']:
-                    //     project_config_list.append({
-                    //         "project": config[p]['name'],
-                    //         "config": {"rootdir": config[p]['rootdir']}
-                    //     })
-                    $newAgent = array(
-                        "id" => $this->config['agent_id'],
-                        "user" => $currentUserId,
-                        "version" => $version,
-                        "location" => $this->config['location_id'],
-                        "project_config_list" => $projectConfigList
-                    );
-                    $this->logger->debug(sprintf("JSON: %s", json_encode($newAgent)));
-                    $res = $this->radiamAPI->createUserAgent($newAgent);
-                    // file_put_contents("create_user_agent_result",print_r($res, true));
-                    if (!$res or !isset($res->id)) {
-                        return array(false, "Tried to create a new user agent, but the API call failed.");
-                    }
-                    else {
-                        $this->logger->info("User agent {$this->config['agent_id']} created.");
-                    }
+        // Create the location if needed
+        if (!array_key_exists('location_id', $this->config)) {
+            $res = $this->radiamAPI->searchEndpointByName('locations', $this->config['location_name'], "display_name");
+            // file_put_contents("locations_result", print_r($res, true));
+            if ($res and isset($res->results) and count($res->results) > 0) {
+                $this->config['location_id'] = $res->results[0]->id;
+            }
+            else {
+                $res = $this->radiamAPI->searchEndpointByName('locationtypes', $defaultLocationType, "label");
+                // file_put_contents("locationtypes_result", print_r($res, true));
+                if ($res and isset($res->results) and count($res->results) > 0) {
+                    // file_put_contents("locationtypes_result_results", print_r($res->results, true));
+                    $locationId = $res->results[0]->id;
                 }
                 else {
-                    $this->logger->error("Could not determine current logged in user to create user agent.");
-                    return array(false, "Could not determine current logged in user to create user agent.");
+                    return array(false, "Could not look up location type ID for {$defaultLocationType}");
+                }
+                $hostname = gethostname();
+                $newLocation = array(
+                    "display_name" => $this->config['location_name'],
+                    "host_name"    => $hostname,
+                    "location_type"=> $locationId
+                );
+                $res = $this->radiamAPI->createLocation($newLocation);
+                // file_put_contents("create_location_result",print_r($res, true));
+                if ($res and isset($res->id)) {
+                    $this->config['location_id'] = $res->id;
+                }
+                else {
+                    return array(false, "Tried to create a new location, but the API call failed.");
+                }
+            }
+            // Write the location id to the radconfig table
+            $db = App::get('db');
+            $currentUserId = User::get('id');
+            $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
+                    VALUES ('location_id', '{$this->config['location_id']}', now(), $currentUserId);";
+            $db->setQuery($sql);
+            $db->query();
+        }
+        // Create the user agent if needed
+        $res = $this->radiamAPI->searchEndpointByName('useragents', $this->config['agent_id'], "id");
+        if (!$res or !isset($res->results) or count($res->results) == 0) {
+            $this->logger->info("Useragent {$this->config['agent_id']} was not found in the remote system; creating it now.");
+            $res = $this->radiamAPI->getLoggedInUser();
+
+            if ($res and isset($res->id)) {
+                $currentUserId = $res->id;
+                $projectConfigList = array();
+                //TODO: add info into project config list
+                // for p in config['projects']['project_list']:
+                //     project_config_list.append({
+                //         "project": config[p]['name'],
+                //         "config": {"rootdir": config[p]['rootdir']}
+                //     })
+                $newAgent = array(
+                    "id" => $this->config['agent_id'],
+                    "user" => $currentUserId,
+                    "version" => $version,
+                    "location" => $this->config['location_id'],
+                    "project_config_list" => $projectConfigList
+                );
+                $this->logger->debug(sprintf("JSON: %s", json_encode($newAgent)));
+                $res = $this->radiamAPI->createUserAgent($newAgent);
+                // file_put_contents("create_user_agent_result",print_r($res, true));
+                if (!$res or !isset($res->id)) {
+                    return array(false, "Tried to create a new user agent, but the API call failed.");
+                }
+                else {
+                    $this->logger->info("User agent {$this->config['agent_id']} created.");
                 }
             }
             else {
-                $this->logger->debug("User agent {$this->config['agent_id']} appears to exist.");
+                $this->logger->error("Could not determine current logged in user to create user agent.");
+                return array(false, "Could not determine current logged in user to create user agent.");
             }
+        }
+        else {
+            $this->logger->debug("User agent {$this->config['agent_id']} appears to exist.");
         }
         return array(true, null);
     }
@@ -254,83 +252,81 @@ class RadiamAgent
         $queue = new SplQueue();
         while (true) {
             try {
-                foreach($this->config['projects'] as $project_key) {
-                    $this->logger->info("Checking if files indexed for Project {$project_key}.");
-                    // if there is no files in a project, then run the initial crawl
-                    $res = $this->radiamAPI->searchEndpoint($this->config[$project_key]["endpoint"]);      
-                    if ($res->count > 0) {
-                        $this->logger->info("There are files indexed for Project {$project_key}.");
-                        return;
-                    }
-                    $this->logger->info("Start to full run the Project {$project_key}.");
-                    $queue->push($this->config[$project_key]['rootdir']);
-                    $files = array();
-                    $bulkdata = array();
-                    $bulksize = 0;
+                $this->logger->info("Checking if files indexed for Project {$this->project_key}.");
+                // if there is no files in a project, then run the initial crawl
+                $res = $this->radiamAPI->searchEndpoint($this->config[$this->project_key]["endpoint"]);      
+                if ($res->count > 0) {
+                    $this->logger->info("There are files indexed for Project {$this->project_key}.");
+                    return;
+                }
+                $this->logger->info("Start to full run the Project {$this->project_key}.");
+                $queue->push($this->config[$this->project_key]['rootdir']);
+                $files = array();
+                $bulkdata = array();
+                $bulksize = 0;
 
-                    // nested function 
-                    $postData = function($metadata, $files, $entry, $bulksize, $bulkdata) use($project_key)
-                    {
-                        $repsText = null;
-                        $status = false;
-                        if ($metadata == null or gettype($metadata) == "array" and count($metadata) == 0) {       
+                // nested function 
+                $postData = function($metadata, $files, $entry, $bulksize, $bulkdata)
+                {
+                    $repsText = null;
+                    $status = false;
+                    if ($metadata == null or gettype($metadata) == "array" and count($metadata) == 0) {       
+                    }
+                    else {
+                        array_push($files, $entry);
+                        $metasize = mb_strlen(json_encode($metadata), "8bit");
+                        if (($metasize + $bulksize) > self::POST_DATA_LIMIT) {
+                            list($repsText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
+                            $bulkdata = array();
+                            array_push($bulkdata, $metadata);
+                            $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
                         }
                         else {
-                            array_push($files, $entry);
-                            $metasize = mb_strlen(json_encode($metadata), "8bit");
-                            if (($metasize + $bulksize) > self::POST_DATA_LIMIT) {
-                                list($repsText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
-                                $bulkdata = array();
-                                array_push($bulkdata, $metadata);
-                                $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
-                            }
-                            else {
-                                array_push($bulkdata, $metadata);
-                                $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
-                            }
+                            array_push($bulkdata, $metadata);
+                            $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
                         }
-                        return array($bulkdata, $bulksize, $repsText, $status);
-                    };
-                    while (!$queue->isEmpty()) {
+                    }
+                    return array($bulkdata, $bulksize, $repsText, $status);
+                };
+                while (!$queue->isEmpty()) {
+                    try {
+                        $path = $queue->pop();
                         try {
-                            $path = $queue->pop();
-                            try {
-                                $fs = new FilesystemIterator($path);
-                                // entry includes the filename
-                                foreach ($fs as $entry) {
-                                    if ($entry->isDir()) {
-                                        $queue->push($entry->getPathname());
-                                        $metadata = $this->getDirMeta($entry->getPathname());
-                                        list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
-                                    }
-                                    else if ($entry->isFile()) {
-                                        $metadata = $this->getFileMeta($entry->getPathname(), $project_key);
-                                        list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
-                                    }
+                            $fs = new FilesystemIterator($path);
+                            // entry includes the filename
+                            foreach ($fs as $entry) {
+                                if ($entry->isDir()) {
+                                    $queue->push($entry->getPathname());
+                                    $metadata = $this->getDirMeta($entry->getPathname());
+                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
                                 }
-                            } catch(Exception $e) {
-                                $this->logger->warning($e);
+                                else if ($entry->isFile()) {
+                                    $metadata = $this->getFileMeta($entry->getPathname(), $this->project_key);
+                                    list($bulkdata, $bulksize, $respText, $status) = $postData($metadata, $files, $entry, $bulksize, $bulkdata);
+                                }
                             }
                         } catch(Exception $e) {
                             $this->logger->warning($e);
-                            break;
                         }
+                    } catch(Exception $e) {
+                        $this->logger->warning($e);
+                        break;
                     }
-                    if ($bulkdata == null or gettype($bulkdata) == "array" and count($bulkdata) == 0) {
-                        $this->logger->info("No files to index on Project {$project_key}");
-                        $this->logger->info(sprintf("Agent has added %s files to Project %s", count($files), $project_key));
-                        return array(null, 200);
-                    }
-                    else {
-                        list($repsText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
-                    }
-                    if ($status) {
-                        $this->logger->info("Finished indexing files to Project {$project_key}");
-                        $this->logger->info(sprintf("Agent has added %s files to Project %s", count($files), $project_key));
-                    }
-                    else {
-                        return array($respText, $status);
-                    }
+                }
+                if ($bulkdata == null or gettype($bulkdata) == "array" and count($bulkdata) == 0) {
+                    $this->logger->info("No files to index on Project {$this->project_key}");
+                    $this->logger->info(sprintf("Agent has added %s files to Project %s", count($files), $this->project_key));
+                    return array(null, 200);
+                }
+                else {
+                    list($repsText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
+                }
+                if ($status) {
+                    $this->logger->info("Finished indexing files to Project {$this->project_key}");
+                    $this->logger->info(sprintf("Agent has added %s files to Project %s", count($files), $this->project_key));
+                }
+                else {
+                    return array($respText, $status);
                 }
             } catch (Exception $e) {
                 file_put_contents("e", print_r($e, true));
