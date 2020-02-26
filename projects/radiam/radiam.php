@@ -88,13 +88,7 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 		// Trigger Radiam Component if uploading, deleteing, moving or renaming files, creating new directories
 		// File actions
 		if (in_array($action, $targetActions, true)) 
-		{	
-			// Update the last files event time
-			// TODO: It seems that the field last_run is not needed
-			$sql = "UPDATE `#__radiam_radconfigs` SET `last_run`=now()";
-			$this->db->setQuery($sql);
-			$this->db->execute();  
-			
+		{				
 			switch ($this->action)
 			{
 				case 'save':

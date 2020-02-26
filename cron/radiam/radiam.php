@@ -62,10 +62,15 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 				} catch (Exception $e) {
 					$this->updateRadiamQueue();
 					$logger->error($e);
-				} finally {
+				} finally {					  
 					$logger->info("Finish crawling for Project {$project_key}.");
 				}
 			}
+			// Update the last crawl run time
+			$db = App::get('db');
+			$sql = "UPDATE `#__radiam_radconfigs` SET `last_run`=now()";
+			$db->setQuery($sql);
+			$db->execute();
 			return true;
 		}
 		else {

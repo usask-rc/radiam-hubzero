@@ -255,11 +255,38 @@ class RadiamAgent
         $queue = new SplQueue();
         while (true) {
             try {
-                $this->logger->info("Checking if files indexed for Project {$this->project_key}.");
-                // if there is no files in a project, then run the initial crawl
-                $res = $this->radiamAPI->searchEndpoint($this->config[$this->project_key]["endpoint"]);      
-                if ($res->count > 0) {
-                    $this->logger->info("There are files indexed for Project {$this->project_key}.");
+                // TODO: decide whether to run full run function
+                // $this->logger->info("Checking if files indexed for Project {$this->project_key}.");
+                // // if there is no files in a project, then run the initial crawl
+                // $res = $this->radiamAPI->searchEndpoint($this->config[$this->project_key]["endpoint"]);      
+                // if ($res->count > 0) {
+                //     $this->logger->info("There are files indexed for Project {$this->project_key}.");
+                //     return;
+                // }
+                // If the connection between a hubzero project and a radiam project is created 
+                // after last run of the radiam agent, then run full run
+                $sql = "SELECT `last_run`
+                        FROM `#__radiam_radconfigs`";
+                $this->_db->setQuery($sql);
+                $this->_db->query();
+                if (!$this->_db->getNumRows())
+                {
+                    return;
+                }
+                $lastRun = $this->_db->loadObject()->{'last_run'};
+
+                $sql = "SELECT `created`
+                        FROM `#__radiam_radprojects`
+                        WHERE `project_id` = '{$this->project_key}'";
+                $this->_db->setQuery($sql);
+                $this->_db->query();
+                if (!$this->_db->getNumRows())
+                {
+                    return;
+                }
+                $connectionCreated = $this->_db->loadObject()->{'created'};
+                if ($connectionCreated < $lastRun) {
+                    $this->logger->info("No new project connected to Radiam.");
                     return;
                 }
                 $this->logger->info("Start to full run the Project {$this->project_key}.");
