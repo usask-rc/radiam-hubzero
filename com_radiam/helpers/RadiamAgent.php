@@ -313,7 +313,6 @@ class RadiamAgent
                         break;
                     }
                 }
-                file_put_contents("files.txt", print_r($files, true));
                 if ($bulkdata == null or gettype($bulkdata) == "array" and count($bulkdata) == 0) {
                     $this->logger->info("No files to index on Project {$this->project_key}");
                     $this->logger->info(sprintf("Agent has added %s items to Project %s", count($files), $this->project_key));
