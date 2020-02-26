@@ -120,7 +120,7 @@ class Radtoken extends Relational
      */
     public function expired($controller)
     {
-        $debug = true;
+        $debug = false;
         // If it doesn't exist or isn't published
         if ($this->isNew())
         {
@@ -295,7 +295,7 @@ class Radtoken extends Relational
     //TODO use common codebase to make request to refresh token
     public function refresh($controller)
     {
-        $debug = true;
+        $debug = false;
         $user_id = User::get('id');
 
         $radiam_url = $controller->config->get('radiamurl', null);
