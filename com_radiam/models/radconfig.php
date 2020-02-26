@@ -43,6 +43,16 @@ class RadConfig extends Relational
 	);
 
 	/**
+	 * Automatic fields to populate every time a row is created
+	 *
+	 * @var  array
+	 */
+	public $initiate = array(
+		'created', 
+		'created_by'
+	);
+
+	/**
 	 * Defines a belongs to one relationship between task and assignee
 	 *
 	 * @return  object
