@@ -266,7 +266,7 @@ class RadiamAgent
                 $bulksize = 0;
 
                 // nested function 
-                $postData = function($metadata, $entry, $bulksize, $bulkdata) use ($files)
+                $postData = function($metadata, $entry, $bulksize, $bulkdata) use (&$files)
                 {
                     $repsText = null;
                     $status = false;
@@ -313,9 +313,10 @@ class RadiamAgent
                         break;
                     }
                 }
+                file_put_contents("files.txt", print_r($files, true));
                 if ($bulkdata == null or gettype($bulkdata) == "array" and count($bulkdata) == 0) {
                     $this->logger->info("No files to index on Project {$this->project_key}");
-                    $this->logger->info(sprintf("Agent has added %s files to Project %s", count($files), $this->project_key));
+                    $this->logger->info(sprintf("Agent has added %s items to Project %s", count($files), $this->project_key));
                     return array(null, 200);
                 }
                 else {
@@ -323,7 +324,8 @@ class RadiamAgent
                 }
                 if ($status) {
                     $this->logger->info("Finished indexing files to Project {$this->project_key}");
-                    $this->logger->info(sprintf("Agent has added %s files to Project %s", count($files), $this->project_key));
+                    $this->logger->info(sprintf("Agent has added %s items to Project %s", count($files), $this->project_key));
+                    return array($repsText, $status);
                 }
                 else {
                     return array($respText, $status);
