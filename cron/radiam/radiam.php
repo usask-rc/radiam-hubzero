@@ -57,8 +57,17 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 				try {
 					$logger->info("Start crawling for Project {$project_key}.");
 					$agent = new RadiamAgent($config, $project_key, $logger);
-					$agent->fullRun();
-					$agent->processQueue();
+					list($status, $respText) = $agent->fullRun();
+					
+					// If the first full crawl is not executed
+					if ($status == null and $respText == null) {
+						$agent->processQueue();
+					}
+					// If the full crawling is executed for project, then don't process
+					// events in the radiam queue for this project
+					else {
+						$agent->clearQueue();
+					}
 				} catch (Exception $e) {
 					$this->updateRadiamQueue();
 					$logger->error($e);

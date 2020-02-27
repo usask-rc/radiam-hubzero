@@ -291,7 +291,7 @@ class Radiam extends SiteController
             $this->redirect($url='login', null, null);
         }
 
-        $radiam_url = $this->config->get('radiamurl', null);
+        $radiam_url = $this->getRadiamURL();
 
         $users = $this->getUsers($token->get('access_token'), $radiam_url);
 
@@ -311,7 +311,7 @@ class Radiam extends SiteController
             $this->redirect($url='login', null, null);
         }
 
-        $radiam_url = $this->config->get('radiamurl', null);
+        $radiam_url = $this->getRadiamURL();
 
         $users = $this->getUsers($token->get('access_token'), $radiam_url);
 
@@ -331,7 +331,7 @@ class Radiam extends SiteController
             $this->redirect($url='login', null, null);
         }
 
-        $radiam_url = $this->config->get('radiamurl', null);
+        $radiam_url = $this->getRadiamURL();
 
         $users = $this->getUsers($token->get('access'), $radiam_url);
 
@@ -344,7 +344,7 @@ class Radiam extends SiteController
     }
 
     public function getRadiamURL()
-    {
+    {   
         return $this->config->get('radiamurl', null);
     }
 

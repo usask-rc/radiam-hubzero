@@ -248,7 +248,7 @@ class RadiamAgent
     /**
      * Crawl the entire directory for all projects that with no files indexed
      * 
-     * @return void
+     * @return array $respText $status
      */
     public function fullRun() 
     {  
@@ -271,7 +271,7 @@ class RadiamAgent
                 $this->_db->query();
                 if (!$this->_db->getNumRows())
                 {
-                    return;
+                    return array(null, null);
                 }
                 $lastRun = $this->_db->loadObject()->{'last_run'};
 
@@ -282,12 +282,12 @@ class RadiamAgent
                 $this->_db->query();
                 if (!$this->_db->getNumRows())
                 {
-                    return;
+                    return array(null, null);
                 }
                 $connectionCreated = $this->_db->loadObject()->{'created'};
                 if ($connectionCreated < $lastRun) {
-                    $this->logger->info("No new project connected to Radiam.");
-                    return;
+                    $this->logger->info("No new project connected to Radiam. No need to run the full crawling.");
+                    return array(null, null);
                 }
                 $this->logger->info("Start to full run the Project {$this->project_key}.");
                 $queue->push($this->config[$this->project_key]['rootdir']);
@@ -298,7 +298,7 @@ class RadiamAgent
                 // nested function 
                 $postData = function($metadata, $entry, $bulksize, $bulkdata) use (&$files)
                 {
-                    $repsText = null;
+                    $respText = null;
                     $status = false;
                     if ($metadata == null or gettype($metadata) == "array" and count($metadata) == 0) {       
                     }
@@ -306,7 +306,7 @@ class RadiamAgent
                         array_push($files, $entry);
                         $metasize = mb_strlen(json_encode($metadata), "8bit");
                         if (($metasize + $bulksize) > self::POST_DATA_LIMIT) {
-                            list($repsText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
+                            list($respText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
                             $bulkdata = array();
                             array_push($bulkdata, $metadata);
                             $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
@@ -316,7 +316,7 @@ class RadiamAgent
                             $bulksize = mb_strlen(json_encode($bulkdata), "8bit");
                         }
                     }
-                    return array($bulkdata, $bulksize, $repsText, $status);
+                    return array($bulkdata, $bulksize, $respText, $status);
                 };
                 while (!$queue->isEmpty()) {
                     try {
@@ -349,12 +349,12 @@ class RadiamAgent
                     return array(null, 200);
                 }
                 else {
-                    list($repsText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
+                    list($respText, $status) = $this->tryConnectionInWorkerBulk($bulkdata);
                 }
                 if ($status) {
                     $this->logger->info("Finished indexing files to Project {$this->project_key}");
                     $this->logger->info(sprintf("Agent has added %s items to Project %s", count($files), $this->project_key));
-                    return array($repsText, $status);
+                    return array($respText, $status);
                 }
                 else {
                     return array($respText, $status);
@@ -396,6 +396,18 @@ class RadiamAgent
         }
     }
 
+
+    public function clearQueue() {
+        $radiamQueue = $this->getRadiamQueue();
+        if ($radiamQueue)
+        {
+            foreach ($radiamQueue as $event)
+            {	               
+                $id = $event->id;
+                $this->deleteRadiamQueueRow($id);
+            }
+        }
+    }
 
     /**
      * Get all the records in radqueue table
