@@ -192,12 +192,9 @@ class RadiamAgent
             }
             // Write the location id to the radconfig table
             $db = App::get('db');
-            // TODO: delete 
-            // $currentUserId = User::get('id');
-            // $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
-            //         VALUES ('location_id', '{$this->config['location_id']}', now(), $currentUserId);";
-            $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`) 
-                    VALUES ('location_id', '{$this->config['location_id']}');";
+            $currentUserId = User::get('id');
+            $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
+                    VALUES ('location_id', '{$this->config['location_id']}', now(), $currentUserId);";
             $db->setQuery($sql);
             $db->query();
         }
