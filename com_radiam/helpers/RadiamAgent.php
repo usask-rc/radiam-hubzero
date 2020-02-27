@@ -268,11 +268,7 @@ class RadiamAgent
                 $sql = "SELECT `last_run`
                         FROM `#__radiam_radconfigs`";
                 $this->_db->setQuery($sql);
-                $this->_db->query();
-                if (!$this->_db->getNumRows())
-                {
-                    return array(null, null);
-                }
+                $this->_db->query();                
                 $lastRun = $this->_db->loadObject()->{'last_run'};
 
                 $sql = "SELECT `created`
@@ -280,15 +276,15 @@ class RadiamAgent
                         WHERE `project_id` = '{$this->project_key}'";
                 $this->_db->setQuery($sql);
                 $this->_db->query();
-                if (!$this->_db->getNumRows())
-                {
-                    return array(null, null);
-                }
                 $connectionCreated = $this->_db->loadObject()->{'created'};
+                
+                // No new project is added to the Radiam Component
                 if ($connectionCreated < $lastRun) {
-                    $this->logger->info("No new project connected to Radiam. No need to run the full crawling.");
+                    $this->logger->info("No new project linked to Radiam. No need to run the full crawling.");
                     return array(null, null);
                 }
+
+                // New project is added to the Radiam Component
                 $this->logger->info("Start to full run the Project {$this->project_key}.");
                 $queue->push($this->config[$this->project_key]['rootdir']);
                 $files = array();
