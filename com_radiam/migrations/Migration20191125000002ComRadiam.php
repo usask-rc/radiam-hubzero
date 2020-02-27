@@ -24,8 +24,8 @@ class Migration20191125000002ComRadiam extends Base
 		}
 		if ($this->db->tableExists('#__radiam_radprojects'))
 		{
-			$query = "INSERT INTO `#__radiam_radprojects` (`id`, `project_id`, `radiam_project_uuid`, `radiam_user_uuid`, `created`, `created_by`, `state`)
-					VALUES (1, '1', '456-789', '555-324', '2019-11-26 13:05:21', 1001, 1);";
+			$query = "INSERT INTO `#__radiam_radprojects` (`id`, `project_id`, `radiam_project_uuid`, `created`, `created_by`, `state`)
+					VALUES (1, '1', '456-789', '2019-11-26 13:05:21', 1001, 1);";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}

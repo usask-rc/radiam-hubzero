@@ -511,17 +511,5 @@ class Radiam extends SiteController
         $db->setQuery($sql);
         $radiam_url = $db->loadObject()->configvalue;
         $this->config->set('radiamurl', $radiam_url);
-
-        // $sql = "SELECT `project_id`, `radiam_project_uuid`, `radiam_user_uuid` FROM `#__radiam_radprojects`";
-        // $db->setQuery($sql);
-        // $projects = $db->loadObjectList();
-        // foreach ($projects as $project)
-        // {
-        //     $project_info = array(
-        //         'raidam_project_uuid' => $project->raidam_project_uuid, 
-        //         'radiam_user_uuid' => $project->radiam_user_uuid
-        //     );
-        //     $this->config->set($project->project_id, $project_info);
-        // }
     }
 }
