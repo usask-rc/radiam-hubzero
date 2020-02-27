@@ -132,8 +132,8 @@ class Adminradproject extends AdminController
 			$row = RadProject::oneOrNew($id);
 		}
 
-		// Get all HubZero projects for dropdown selection
-		$hubzero_project = Project::all();
+		// Get all active HubZero projects for dropdown selection
+		$hubzero_project = Project::whereEquals('state', 1);
 
 		// Output the view
 		// 
