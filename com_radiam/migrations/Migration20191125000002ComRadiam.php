@@ -14,18 +14,19 @@ class Migration20191125000002ComRadiam extends Base
 	 * Up
 	 **/
 	public function up()
-	{
+	{	
+		$currentUserId = User::get('id');
 		if ($this->db->tableExists('#__radiam_radconfigs'))
 		{
 			$query = "INSERT INTO `#__radiam_radconfigs` (`id`, `configname`, `configvalue`, `created`, `created_by`, `state`)
-					VALUES (1,'radiam_host_url', 'https://radiam.somewhere.edu/', '2019-11-26 13:05:21', 1001, 1);";
+					VALUES (1,'radiam_host_url', 'https://radiam.somewhere.edu/', now(), '{$currentUserId}', 1);";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
 		if ($this->db->tableExists('#__radiam_radprojects'))
 		{
 			$query = "INSERT INTO `#__radiam_radprojects` (`id`, `project_id`, `radiam_project_uuid`, `created`, `created_by`, `state`)
-					VALUES (1, '1', '456-789', '2019-11-26 13:05:21', 1001, 1);";
+					VALUES (1, '1', '456-789', now(), '{$currentUserId}', 1);";
 			$this->db->setQuery($query);
 			$this->db->query();
 		}
