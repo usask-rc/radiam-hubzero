@@ -505,7 +505,6 @@ class Radiam extends SiteController
     protected function _loadConfig()
     {
         // Radiam Config     
-        // TODO: load all config pairs in the config table    
         $db = App::get('db');
         $sql = "SELECT `configvalue` FROM `#__radiam_radconfigs` WHERE `configname` LIKE '%radiam%url%'";
         $db->setQuery($sql);
