@@ -4,11 +4,21 @@ namespace Components\Radiam\Admin\Controllers;
 use Hubzero\Component\AdminController;
 use Components\Radiam\Models\RadProject;
 use Components\Projects\Models\Orm\Project;
+use Components\Radiam\Helpers\Helper;
+use Components\Radiam\Helpers\RadiamAPI;
 use Request;
 use Notify;
 use Route;
 use Lang;
 use App;
+use Components\Radiam\Models\RadConfig;
+use Components\Radiam\Models\Radtoken;
+
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'Helper.php';
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'radiam_api.php';
+require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radconfig.php';
+require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radtoken.php';
+
 
 /**
  * Radiam admin controller for projects
@@ -135,6 +145,24 @@ class Adminradproject extends AdminController
 		// Get all active HubZero projects for dropdown selection
 		$hubzero_project = Project::whereEquals('state', 1);
 
+		// Get all Radiam projects for the users whose token has been created
+		foreach(RadConfig::whereEquals('configname', 'radiam_host_url') as $row) {
+			$radiam_host_url = $row->configvalue;
+			break;
+		}		
+		$logger = Helper::setLogger();
+		$radiam_project = array();
+		foreach (Radtoken::all() as $token) {
+			$tokens_array = array (
+				"access"  => $token->get('access_token'),
+				"refresh" => $token->get('refresh_token')
+			);
+			$userId = $token->get('user_id');
+			$radiamAPI = new RadiamAPI($radiam_host_url, $tokens_array, $logger, $userId);
+			$radiam_project += $radiamAPI->getProjects()->results;
+		}
+		file_put_contents("radiam_projects.txt", print_r($radiam_project, true));
+		
 		// Output the view
 		// 
 		// Make sure we load the edit view.
@@ -145,6 +173,7 @@ class Adminradproject extends AdminController
 		$this->view
 			->set('row', $row)
 			->set('hubzero_project', $hubzero_project)
+			->set('radiam_project', $radiam_project)
 			->setLayout('edit')
 			->display();
 	}

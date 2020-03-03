@@ -10,6 +10,10 @@ namespace Components\Radiam\Helpers;
 // No direct access
 defined('_HZEXEC_') or die('Restricted access');
 
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Formatter\LineFormatter;
+
 /**
  * General Helper functions
  *
@@ -25,4 +29,22 @@ class Helper
     {
         return rtrim($baseUrl, '/') . '/' . ltrim($apiPath, '/');
     }
+
+    /**
+	 * Set up the logger
+	 *
+	 * @return object $logger The logger
+	 */
+	public static function setLogger()
+    {   
+        $logger = new Logger(Config::get('application_env'));
+        $streamHandler = new StreamHandler(Config::get('log_path', PATH_APP . DS . 'logs') . '/radiam.log', Logger::DEBUG);
+
+        $logFormatter = "%datetime% [%level_name%] %message%\n";
+        $formatter = new LineFormatter($logFormatter);
+        $streamHandler->setFormatter($formatter);
+        $logger->pushHandler($streamHandler);
+
+        return $logger;
+	}
 } 

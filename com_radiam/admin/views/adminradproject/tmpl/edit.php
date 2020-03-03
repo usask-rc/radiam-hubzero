@@ -62,11 +62,16 @@ Joomla.submitbutton = function(pressbutton) {
 						<?php endforeach; ?>
 					</select>
 				</div>
-
+		
 				<div class="input-wrap">
-					<label for="field-name"><?php echo Lang::txt('COM_RADIAM_FIELD_RADPROJECT'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
-					<input type="text" name="fields[radiam_project_uuid]" id="field-radiam_project_uuid" size="35" value="<?php echo $this->escape($this->row->get('radiam_project_uuid')); ?>" />
-				</div>			
+					<label for="radiam_project_uuid"><?php echo Lang::txt('COM_RADIAM_FIELD_RADPROJECT'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
+					<select name="fields[radiam_project_uuid]" id="field-radiam_project_uuid">
+					<?php foreach ($this->radiam_project as $rad_project) : ?>
+							<?php $sel = ($rad_project->id == $this->row->radiam_project_uuid) ? 'selected="selected"' : ''; ?>
+							<option <?php echo $sel; ?> value="<?php echo $rad_project->id; ?>"><?php echo $this->escape($rad_project->name); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</div>
 
 			</fieldset>
 		</div>
