@@ -161,7 +161,6 @@ class Adminradproject extends AdminController
 			$radiamAPI = new RadiamAPI($radiam_host_url, $tokens_array, $logger, $userId);
 			$radiam_project += $radiamAPI->getProjects()->results;
 		}
-		file_put_contents("radiam_projects.txt", print_r($radiam_project, true));
 		
 		// Output the view
 		// 
