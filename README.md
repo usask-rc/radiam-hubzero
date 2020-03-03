@@ -54,7 +54,16 @@ The module is installed but not available until you create an instance of it.
 
 ### Plugin Configuration
 
-The plugin is installed and available to administrators after running the migration above. There is nothing to config for the plugin.
+There two radiam plugins installed, one for the cron type and one for the projects type. The plugins are installed and available to administrators after running the migration above. 
+
+There is nothing to config for the radiam plugin of the projects type.
+
+For the radiam plugin of the cron type,
+
+- Log into your HubZero administration section
+- Click on the menu for Components and find Cron in the list and click on it
+- Edit the `Post data to Radiam API` cron job to meet your needs 
+- Publish the `Post data to Radiam API` cron job to start running the Radiam Agent on HubZero
 
 ## Viewing
 
