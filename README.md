@@ -1,6 +1,6 @@
 # radiam-hubzero
 
-Radiam component and module for HubZero
+Radiam component, module and plugin for HubZero
 
 ## Installation
 
@@ -8,7 +8,9 @@ Copy the com_radiam directory to your HubZero installation, in the components fo
 
 Copy the mod_radiam directory to your HubZero installation, in the modules folder.  It will be located somewhere like `/var/www/hubname/app/modules` so when you're done you have a new directory `/var/www/hubname/app/modules/mod_radiam`.
 
-Copy the projects directory to your HubZero installation, in the plugins folder.  It will be located somewhere like `/var/www/hubname/app/plugins` so when you're done you have a new directory `/var/www/hubname/app/plugins/projects`.
+Copy the projects directory to your HubZero installation, in the plugins folder.  It will be located somewhere like `/var/www/hubname/app/plugins` so when you're done you have a new directory `/var/www/hubname/app/plugins/projects`. 
+
+Copy the cron directory to your HubZero installation, in the plugins folder.  It will be located somewhere like `/var/www/hubname/app/plugins` so when you're done you have a new directory `/var/www/hubname/app/plugins/cron`. 
 
 From the command line of your HubZero instance, initialize the Radiam database objects:
 
@@ -19,7 +21,7 @@ cd /var/www/hubname
 php muse migration
 ```
 
-That command should list at least four database migrations that will be run: two for the component, one for the module, one for the plugin.  If it looks OK, you can proceed:
+That command should list at least six database migrations that will be run: two for the component, one for the module, three for the plugin.  If it looks OK, you can proceed:
 
 ```
 # Full run this time
@@ -50,12 +52,18 @@ The module is installed but not available until you create an instance of it.
     - Status = published
     - Access = public
 
+### Plugin Configuration
+
+The plugin is installed and available to administrators after running the migration above. There is nothing to config for the plugin.
+
 ## Viewing
 
 As a regular HubZero user, navigate to your dashboard.  Add the Radiam module in your dashboard.
 
 
 ## Removal
+
+### Component Removal
 
 Remove the database tables and entension entries:
 
@@ -71,4 +79,42 @@ Then delete the entire contents of the component:
 cd /var/www/hubname/app/components
 
 rm -rf com_radiam
+```
+
+### Module Removal
+
+Remove the database tables and entension entries:
+
+```
+cd /var/www/hubname
+
+php muse migration -d=down -e=mod_radiam -f
+```
+
+Then delete the entire contents of the component:
+
+```
+cd /var/www/hubname/app/modules
+
+rm -rf mod_radiam
+```
+
+### Plugin Removal
+
+Remove the database tables and entension entries:
+
+```
+cd /var/www/hubname
+
+php muse migration -d=down -e=plg_cron_radiam -f
+php muse migration -d=down -e=plg_projects_radiam -f
+```
+
+Then delete the entire contents of the component:
+
+```
+cd /var/www/hubname/app/plugins
+
+rm -rf cron
+rm -rf projects
 ```
