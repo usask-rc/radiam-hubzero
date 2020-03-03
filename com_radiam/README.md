@@ -2,8 +2,7 @@
 Installation
 ============
 
-When downloaded as a ZIP file from http://help.hubzero.org
-unzip and place the resulting directory into YOUR_HUB_WEBROOT/app/components
+When downloaded as a ZIP file, unzip and place the resulting directory into YOUR_HUB_WEBROOT/app/components
 
 The final result should look like:
 
@@ -11,7 +10,6 @@ The final result should look like:
     .. /components
     .. .. /com_radiam
     .. .. .. /admin
-    .. .. .. /api
     .. .. .. /config
     .. .. .. /helpers
     .. .. .. /migrations
