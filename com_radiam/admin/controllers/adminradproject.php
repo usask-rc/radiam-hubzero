@@ -146,8 +146,8 @@ class Adminradproject extends AdminController
 		$hubzero_project = Project::whereEquals('state', 1);
 
 		// Get all Radiam projects for the users whose token has been created
-		foreach(RadConfig::whereEquals('configname', 'radiam_host_url') as $row) {
-			$radiam_host_url = $row->configvalue;
+		foreach(RadConfig::whereEquals('configname', 'radiam_host_url') as $r) {
+			$radiam_host_url = $r->configvalue;
 			break;
 		}		
 		$logger = Helper::setLogger();
