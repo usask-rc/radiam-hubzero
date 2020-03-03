@@ -42,6 +42,7 @@ class Migration20191125000001ComRadiam extends Base
 			  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
 			  `project_id` int(11) unsigned NOT NULL DEFAULT '0',
 			  `radiam_project_uuid` varchar(80) NOT NULL DEFAULT '',
+			  `radiam_project_name` varchar(255) NOT NULL DEFAULT '',
 			  `created` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
 			  `created_by` int(11) unsigned NOT NULL DEFAULT '0',
 			  `state` tinyint(2) NOT NULL DEFAULT '1',

@@ -195,6 +195,11 @@ class Adminradproject extends AdminController
 		// Incoming
 		$fields = Request::getVar('fields', array(), 'post', 'none', 2);
 
+		$radiam_project_info = $fields['radiam_project_info'];
+		$radiam_project_info_expode = explode(',', $radiam_project_info);
+		$fields['radiam_project_uuid'] = $radiam_project_info_expode[0];
+		$fields['radiam_project_name'] = $radiam_project_info_expode[1];
+
 		// Initiate the model and bind the incoming data to it
 		$row = RadProject::oneOrNew($fields['id'])->set($fields);
 

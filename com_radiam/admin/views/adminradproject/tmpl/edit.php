@@ -46,7 +46,10 @@ Joomla.submitbutton = function(pressbutton) {
 	}
 }
 </script>
-
+<?php
+	echo "hello";
+	echo $this->row->get('state');
+?>
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm" class="editform" id="item-form">
 	<div class="grid">
 		<div class="col span7">
@@ -64,14 +67,19 @@ Joomla.submitbutton = function(pressbutton) {
 				</div>
 		
 				<div class="input-wrap">
-					<label for="radiam_project_uuid"><?php echo Lang::txt('COM_RADIAM_FIELD_RADPROJECT'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
-					<select name="fields[radiam_project_uuid]" id="field-radiam_project_uuid">
+					<label for="radiam_project_info"><?php echo Lang::txt('COM_RADIAM_FIELD_RADPROJECT'); ?> <span class="required"><?php echo Lang::txt('JOPTION_REQUIRED'); ?></span></label>
+					<select name="fields[radiam_project_info]" id="field-radiam_project_info">
 					<?php foreach ($this->radiam_project as $rad_project) : ?>
 							<?php $sel = ($rad_project->id == $this->row->radiam_project_uuid) ? 'selected="selected"' : ''; ?>
-							<option <?php echo $sel; ?> value="<?php echo $rad_project->id; ?>"><?php echo $this->escape($rad_project->name); ?></option>
+							<option <?php echo $sel; ?> value="<?php echo $rad_project->id; ?>,<?php echo $rad_project->name; ?>">
+								<?php echo $this->escape($rad_project->name); ?>
+							</option>
 						<?php endforeach; ?>
 					</select>
 				</div>
+
+				<input type="hidden" name="fields[radiam_project_name]" id="field-radiam_project_name" value="<?php echo $this->escape($rad_project->name); ?>" />
+
 
 			</fieldset>
 		</div>

@@ -33,6 +33,7 @@ class RadProject extends Relational
 	protected $rules = array(
 		'project_id' => 'notempty',
 		'radiam_project_uuid' => 'notempty',
+		'radiam_project_name' => 'notempty',
 	);
 
 	/**
