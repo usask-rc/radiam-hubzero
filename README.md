@@ -54,9 +54,9 @@ The module is installed but not available until you create an instance of it.
 
 ### Plugin Configuration
 
-There two radiam plugins installed, one for the cron type and one for the projects type. The plugins are installed and available to administrators after running the migration above. 
+There two radiam plugins installed, one for the cron type and one for the projects type. The plugins are installed and available to administrators after running the migration above. The projects/radiam plugin is used to monitor file system events. The cron/radiam plugsin is used to create a cron job to send metadata to the radiam server periodically. 
 
-There is nothing to config for the radiam plugin of the projects type.
+There is nothing to configure for the radiam plugin of the projects type.
 
 For the radiam plugin of the cron type,
 
