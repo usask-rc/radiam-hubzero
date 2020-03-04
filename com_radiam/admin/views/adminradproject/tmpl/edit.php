@@ -46,10 +46,7 @@ Joomla.submitbutton = function(pressbutton) {
 	}
 }
 </script>
-<?php
-	echo "hello";
-	echo $this->row->get('state');
-?>
+
 <form action="<?php echo Route::url('index.php?option=' . $this->option . '&controller=' . $this->controller); ?>" method="post" name="adminForm" class="editform" id="item-form">
 	<div class="grid">
 		<div class="col span7">
@@ -77,9 +74,6 @@ Joomla.submitbutton = function(pressbutton) {
 						<?php endforeach; ?>
 					</select>
 				</div>
-
-				<input type="hidden" name="fields[radiam_project_name]" id="field-radiam_project_name" value="<?php echo $this->escape($rad_project->name); ?>" />
-
 
 			</fieldset>
 		</div>
