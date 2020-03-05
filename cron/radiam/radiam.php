@@ -12,7 +12,6 @@ use Components\Radiam\Helpers\Helper;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
-use Lang;
 
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'RadiamAgent.php';
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'Helper.php';
