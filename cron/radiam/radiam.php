@@ -113,7 +113,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		}
 
 		if (!array_key_exists('radiam_host_url', $config)) {
-			$logger->error(Lang::txt('COM_RADIAM_ERROR_HOST_URL'));
+			$logger->error(Lang::txt('PLG_CRON_RADIAM_ERROR_HOST_URL'));
 			return array($config, false);
 		}
 
