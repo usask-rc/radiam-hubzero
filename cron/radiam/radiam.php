@@ -9,12 +9,15 @@ defined('_HZEXEC_') or die();
 
 use Components\Radiam\Helpers\RadiamAgent;
 use Components\Radiam\Helpers\Helper;
-use Monolog\Logger;
-use Monolog\Handler\StreamHandler;
-use Monolog\Formatter\LineFormatter;
+use Components\Radiam\Helpers\ErrorCode;
+use Components\Radiam\Models\RadConfig;
+use Components\Radiam\Models\RadProject;
 
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'RadiamAgent.php';
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'Helper.php';
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'ErrorCode.php';
+require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radconfig.php';
+require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radproject.php';
 
 
 /**
@@ -102,12 +105,9 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		// Radiam Config     
 		$config = array();
 		
-		$db = App::get('db');
-		$sql = "SELECT `configname`, `configvalue` FROM `#__radiam_radconfigs`";
-		$db->setQuery($sql);
-		$configsDb = $db->loadObjectList();
+		$radconfigs = RadConfig::all();
 
-		foreach ($configsDb as $c) {
+		foreach ($radconfigs as $c) {
 			$config[$c->configname] = $c->configvalue;
 		}
 
@@ -118,6 +118,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		}
 
 		if (!array_key_exists('agent_id', $config)) {
+			$db = App::get('db');
 			$config['agent_id'] = $this->generateUuid();
             $currentUserId = User::get('id');
 			$sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
@@ -127,6 +128,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		}
 
 		if (!array_key_exists('location_name', $config)) {
+			$db = App::get('db');
 			$config['location_name'] = gethostname();
             $currentUserId = User::get('id');
 			$sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
@@ -135,9 +137,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 			$db->query();
 		}
 
-		$sql = "SELECT `project_id`, `radiam_project_uuid` FROM `#__radiam_radprojects`";
-		$db->setQuery($sql);
-		$projects = $db->loadObjectList();
+		$projects = RadProject::all();
 		$config['projects'] = array();
 
 		require_once Component::path('com_projects') . DS . 'tables' . DS . 'project.php';
