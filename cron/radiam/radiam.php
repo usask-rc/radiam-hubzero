@@ -8,11 +8,14 @@
 defined('_HZEXEC_') or die();
 
 use Components\Radiam\Helpers\RadiamAgent;
+use Components\Radiam\Helpers\Helper;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
 
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'RadiamAgent.php';
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'Helper.php';
+
 
 /**
  * Cron plugin for radiam
@@ -50,7 +53,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 	 */
     public function postApi(\Components\Cron\Models\Job $job)
     {   
-		$logger = $this->_setLogger();
+		$logger = Helper::setLogger();
 		list($config, $loadConfigStatus) = $this->_loadConfig($logger);
 		if ($loadConfigStatus) {
 			foreach($config['projects'] as $project_key) {
@@ -154,26 +157,6 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 
 		return array($config, true);
 	}
-
-
-	/**
-	 * Set up the logger
-	 *
-	 * @return object $logger The logger
-	 */
-	private function _setLogger()
-    {
-        $logger = new Logger(Config::get('application_env'));
-        $streamHandler = new StreamHandler(Config::get('log_path', PATH_APP . DS . 'logs') . '/radiam.log', Logger::DEBUG);
-
-        $logFormatter = "%datetime% [%level_name%] %message%\n";
-        $formatter = new LineFormatter($logFormatter);
-        $streamHandler->setFormatter($formatter);
-        $logger->pushHandler($streamHandler);
-
-        return $logger;
-	}
-
 
 	/**
 	 * Generate an uuid
