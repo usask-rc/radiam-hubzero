@@ -24,7 +24,15 @@ require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radproject.p
  * Cron plugin for radiam
  */
 class plgCronRadiam extends \Hubzero\Plugin\Plugin
-{
+{	
+	/**
+	 * Affects constructor behavior. If true, language files will be loaded automatically.
+	 *
+	 * @var  boolean
+	 */
+	protected $_autoloadLanguage = true;
+
+
 	/**
 	 * Return a list of events
 	 *
@@ -57,8 +65,10 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
     public function postApi(\Components\Cron\Models\Job $job)
     {   
 		$logger = Helper::setLogger();
-		list($config, $loadConfigStatus) = $this->_loadConfig($logger);
-		if ($loadConfigStatus) {
+		$logger->info("Running the Radiam Cron Job postApi...");
+		try {
+			// TODO: don't return loadconfigstatus
+			list($config, $loadConfigStatus) = $this->_loadConfig($logger);
 			foreach($config['projects'] as $project_key) {
 				try {
 					$logger->info("Start crawling for Project {$project_key}.");
@@ -87,9 +97,11 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 			$db->setQuery($sql);
 			$db->execute();
 			return true;
-		}
-		else {
-			return false;
+		} catch (Exception $e) {
+			$logger->error($e->getMessage());
+			// TODO: decide whether throw the exception or notify it as an message
+			// \Notify::error($e->getMessage());
+			throw $e;
 		}
 	}
 	
@@ -99,9 +111,12 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 	 *
 	 * @param object $logger
 	 * @return array $config, $status
+	 * @throws Exception if radiam_host_url is not configured
 	 */
 	private function _loadConfig($logger)
-	{
+	{	
+		$logger->info("Loading Radiam Configurations...");
+		
 		// Radiam Config     
 		$config = array();
 		
@@ -112,8 +127,8 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		}
 
 		if (!array_key_exists('radiam_host_url', $config)) {
-			// $logger->error(Lang::txt('PLG_CRON_RADIAM_ERROR_HOST_URL'));
-			$logger->error("Radiam host url is not set.");
+			throw new Exception(Lang::txt('PLG_CRON_RADIAM_ERROR_HOST_URL'), ErrorCode::NOT_FOUND_ERROR);
+			// delete this return
 			return array($config, false);
 		}
 
