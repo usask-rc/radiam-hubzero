@@ -12,6 +12,7 @@ use Components\Radiam\Helpers\Helper;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Formatter\LineFormatter;
+use Lang;
 
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'RadiamAgent.php';
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'Helper.php';
@@ -112,7 +113,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		}
 
 		if (!array_key_exists('radiam_host_url', $config)) {
-			$logger->error("Radiam host url is not set.");
+			$logger->error(Lang::txt('COM_RADIAM_ERROR_HOST_URL'));
 			return array($config, false);
 		}
 
