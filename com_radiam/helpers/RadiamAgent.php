@@ -12,6 +12,7 @@ use Components\Projects\Models\Orm\Project;
 use Exception;
 use FilesystemIterator;
 use SplQueue;
+use Lang;
 
 require_once \Component::path('com_projects') . DS . 'models' . DS . 'orm' . DS . 'project.php';
 require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radtoken.php';
@@ -21,7 +22,7 @@ require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'radiam_api.
 defined('_HZEXEC_') or die('Restricted access');
 
 /**
- * Raidam Agent Class
+ * Raidam Agent Class, each Radiam Agent is crawling one specific project
  *
  */
 class RadiamAgent
@@ -34,7 +35,7 @@ class RadiamAgent
     private $logger = null;
 
     /**
-     * The radiam hubzero agent config 
+     * The radiam hubzero agent configuration 
      * 
      * @var array
      */
@@ -69,7 +70,7 @@ class RadiamAgent
     private $project_key = null;
 
     /**
-     * The monitored project config
+     * The monitored project configuration
      *
      * @var array
      */
