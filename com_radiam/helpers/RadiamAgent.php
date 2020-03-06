@@ -116,31 +116,27 @@ class RadiamAgent
         
         $userId = $this->getProjectOwner($project_key);
         if ($userId == null) {
-            $this->logger->error('Project does not exist.');
-            throw new Exception('Project does not exist.');
+            throw new Exception(Lang::txt('PLG_CRON_RADIAM_ERROR_PROJECT_NOT_FOUND'), ErrorCode::NOT_FOUND_ERROR);
         } 
+
         $this->userId = $userId;
 
-        $this->logger->info("Inside constructor, user id is {$userId}");
         $tokens = $this->getToken($userId);
-
         if ($tokens == null) {
-            $this->logger->error('Please login first.');
-            throw new Exception('Please login first.');
+            throw new Exception(Lang::txt('PLG_CRON_RADIAM_LOGIN'));
         } 
+
         $tokens_array = array (
             "access"  => $tokens->get('access_token'),
             "refresh" => $tokens->get('refresh_token')
         );
 
-        $this->radiamAPI = new RadiamAPI($this->config["radiam_host_url"], $tokens_array, $this->logger, $userId);
+        $this->radiamAPI = new RadiamAPI($this->config['radiam_host_url'], $tokens_array, $this->logger, $userId);
 
         list($checkinStatus, $errMessage) = $this->agentCheckin();
         $this->project_config = $this->config[$this->project_key];
-        // file_put_contents("this_config", print_r($this->config, true));
         
         if (!$checkinStatus) {
-            $this->logger->error($errMessage);
             throw new Exception("Agent failed to checkin with error message {$errMessage}.");
         }
     }
@@ -155,8 +151,6 @@ class RadiamAgent
      */
     private function agentCheckin() 
     {   
-        $defaultLocationType = "location.type.hubzero";
-        $version = "1.2.0";
         $host = $this->config['radiam_host_url'];
         if (array_key_exists('radiam_project_uuid', $this->config[$this->project_key]) and $this->config[$this->project_key]['radiam_project_uuid']) {
             $this->config[$this->project_key]['endpoint'] = $host . "api/projects/" . $this->config[$this->project_key]['radiam_project_uuid'] . "/";
@@ -178,9 +172,7 @@ class RadiamAgent
             }
             else {
                 $res = $this->radiamAPI->searchEndpointByName('locationtypes', self::DEFUALT_LOCATION_TYPE, "label");
-                // file_put_contents("locationtypes_result", print_r($res, true));
                 if ($res and isset($res->results) and count($res->results) > 0) {
-                    // file_put_contents("locationtypes_result_results", print_r($res->results, true));
                     $locationId = $res->results[0]->id;
                 }
                 else {
@@ -233,7 +225,6 @@ class RadiamAgent
                 );
                 $this->logger->debug(sprintf("JSON: %s", json_encode($newAgent)));
                 $res = $this->radiamAPI->createUserAgent($newAgent);
-                // file_put_contents("create_user_agent_result",print_r($res, true));
                 if (!$res or !isset($res->id)) {
                     return array(false, "Tried to create a new user agent, but the API call failed.");
                 }
