@@ -32,8 +32,7 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 		'moveit'   => 'move',
 		'renameit' => 'move',
 		'savedir'  => 'create',
-		'save'     => 'create',
-		'update'   => 'update'
+		'save'     => 'create'
 	);
 
 	/**
@@ -144,7 +143,6 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 			
 			// File existed, update it
 			if (is_file($path)) {	
-				// $this->action = 'update';
 				$this->_updateFile($path);
 			}
 			else {
@@ -166,7 +164,6 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 				$path = $this->_getFullPath($file);
 				if (is_file($path)) {	
 					// File existed, update it
-					// $this->action = 'update';
 					$this->_updateFile($path);
 				}
 				else {

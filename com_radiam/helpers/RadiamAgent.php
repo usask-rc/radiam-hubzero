@@ -360,7 +360,7 @@ class RadiamAgent
                 sleep(10);
             }
         }
-        return array("Ran out of retries.", 500);
+        return array("Ran out of retries in full run function.", 500);
     }
 
     /**
@@ -370,7 +370,7 @@ class RadiamAgent
      */
     public function processQueue()
     {	
-        $this->logger->info('Start to process file event queue.');
+        $this->logger->info('Start to process file event queue...');
 
         $radiamQueue = $this->getRadiamQueue();
         if ($radiamQueue)
@@ -462,29 +462,6 @@ class RadiamAgent
         $this->_db->query();
     }
 
-
-    /**
-     * Actions to take on a create file system event
-     *
-     * @param object $event A row in the radqueue table, representing a file system event
-     * @return boolean Whether the data is sent to the server successfully or not
-     */
-    private function onCreated($event)
-    {   
-        return $this->onCreateModify($event, 'Created');
-    }
-
-    /**
-     * Actions to take on a modify file system event
-     *
-     * @param object $event A row in the radqueue table, representing a file system event
-     * @return void
-     */
-    private function onModified($event)
-    {
-        return $this->onCreateModify($event, 'Modified');
-    }
-
     /**
      * Actions to take on a move file system event
      *
@@ -532,7 +509,7 @@ class RadiamAgent
                 $this->logger->info("Update the information for directory {$parentPathDest}");
             }
         } catch(Exception $e) {
-            $this->logger->error($e);
+            $this->logger->error("The move event failed to be processed with error message {$e->getMessage()}");
             return false;
         }  
         $this->logger->info("Finish handling a move event.");   
@@ -578,7 +555,7 @@ class RadiamAgent
                 }
             }
         } catch (Exception $e) {
-            $this->logger->error($e);
+            $this->logger->error("The delete event failed to be processed with error message {$e->getMessage()}");
             return false;
         }
         $this->logger->info("Finish handling a delete event.");
@@ -586,13 +563,13 @@ class RadiamAgent
     }
 
     /**
-     * Actions to take on a create or modify file system event
+     * Actions to take on a create file system event
      *
      * @param object $event A row in the radqueue table, representing a file system event
      * @param string $action
      * @return boolean Whether the data is sent to the server successfully or not
      */
-    private function onCreateModify($event, $action)
+    private function onCreated($event, $action='Created')
     {   
         $this->logger->info("{$action} event has been captured. Handling it...");
         try {
@@ -625,7 +602,7 @@ class RadiamAgent
                 }
             }
         } catch (Exception $e) {
-            $this->logger->error($e);
+            $this->logger->error("The create event failed to be processed with error message {$e->getMessage()}");
             return false;
         }
         $this->logger->info("Finish handling a {$action} event.");
@@ -734,9 +711,9 @@ class RadiamAgent
      * @param array $metadata The metadata of the document
      * @return void
      */
-    private function tryConnectionInWorker($path, $metadata=null)
+    private function tryConnectionInWorker($path, $metadata=null, $retries=self::RETRIES)
     {   
-        while (true) 
+        while ($retries > 0) 
         {
             try {
                 $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $path);
@@ -758,10 +735,12 @@ class RadiamAgent
                 }     
                 return;
             } catch (Exception $e) {
-                // file_put_contents("e", print_r($e, true));              
+                $this->logger->warning($e->getMessage());
+                $retries -= 1;
                 sleep(10);
             }
         }
+        throw new Exception("Run out of retries in tryConnectionInWorkder function.");
     }
 
     /**
@@ -770,11 +749,9 @@ class RadiamAgent
      * @param array $metadata The metadata of the file or folder
      * @return void
      */
-    private function tryConnectionInWorkerBulk($metadata)
+    private function tryConnectionInWorkerBulk($metadata, $retries=self::RETRIES)
     {   
-        $this->logger->info("In try connection in worker bulk function");
-        
-        while (true) 
+        while ($retries > 0) 
         {
             try {
                 list($respText, $status) = $this->radiamAPI->createDocumentBulk($this->project_config['endpoint'], $metadata);
@@ -797,10 +774,12 @@ class RadiamAgent
                 }
                 return array($respText, $status);
             } catch (\Exception $e) {
-                // file_put_contents("e", print_r($e, true));      
+                $this->logger->warning($e->getMessage());
+                $retries -= 1;
                 sleep(10);
             }
         }
+        throw new Exception("Run out of retries in tryConnectionInWorkderBulk function.");
     }
 
     
@@ -879,7 +858,7 @@ class RadiamAgent
                 "agent" => $this->config['agent_id']
             );
         } catch (Exception $e) {
-            // file_put_contents("e", print_r($e, true));
+            $this->logger->error($e->getMessage());
             return null;
         }
         return $filemeta; 
@@ -941,6 +920,7 @@ class RadiamAgent
                 "agent" => $this->config['agent_id']
             );
         } catch (Exception $e) {
+            $this->logger->error($e->getMessage());
             return null;
         }
         return $dirmeta;
