@@ -262,6 +262,8 @@ class RadiamAgent
         $queue = new SplQueue();
         while (true) {
             try {
+                // If the connection between a hubzero project and a radiam project is created 
+                // after last run of the radiam agent, then execute the full run function
                 $sql = "SELECT `last_run`
                         FROM `#__radiam_radconfigs`";
                 $this->_db->setQuery($sql);
