@@ -253,7 +253,7 @@ class RadiamAgent
 
 
     /**
-     * Crawl the entire directory for all projects that with no files indexed
+     * Crawl the entire directory for all projects that are newly associated with Radiam server
      * 
      * @return array $respText $status
      */
@@ -262,16 +262,6 @@ class RadiamAgent
         $queue = new SplQueue();
         while (true) {
             try {
-                // TODO: decide whether to run full run function
-                // $this->logger->info("Checking if files indexed for Project {$this->project_key}.");
-                // // if there is no files in a project, then run the initial crawl
-                // $res = $this->radiamAPI->searchEndpoint($this->config[$this->project_key]["endpoint"]);      
-                // if ($res->count > 0) {
-                //     $this->logger->info("There are files indexed for Project {$this->project_key}.");
-                //     return;
-                // }
-                // If the connection between a hubzero project and a radiam project is created 
-                // after last run of the radiam agent, then run full run
                 $sql = "SELECT `last_run`
                         FROM `#__radiam_radconfigs`";
                 $this->_db->setQuery($sql);
