@@ -88,6 +88,16 @@ class RadiamAgent
     const POST_DATA_LIMIT = 1000000;
 
     /**
+     * @const string The location type of the radiam agent
+     */ 
+    const DEFUALT_LOCATION_TYPE = "location.type.hubzero";
+
+    /**
+     * @const string The version of the radiam agent
+     */
+    const VERSION = "1.2.0";
+
+    /**
      * Constructor
      *
      * @param array $config The radiam hubzero agent config 
@@ -166,14 +176,14 @@ class RadiamAgent
                 $this->config['location_id'] = $res->results[0]->id;
             }
             else {
-                $res = $this->radiamAPI->searchEndpointByName('locationtypes', $defaultLocationType, "label");
+                $res = $this->radiamAPI->searchEndpointByName('locationtypes', self::DEFUALT_LOCATION_TYPE, "label");
                 // file_put_contents("locationtypes_result", print_r($res, true));
                 if ($res and isset($res->results) and count($res->results) > 0) {
                     // file_put_contents("locationtypes_result_results", print_r($res->results, true));
                     $locationId = $res->results[0]->id;
                 }
                 else {
-                    return array(false, "Could not look up location type ID for {$defaultLocationType}");
+                    return array(false, "Could not look up location type ID for {${self::DEFUALT_LOCATION_TYPE}}");
                 }
                 $hostname = gethostname();
                 $newLocation = array(
@@ -216,7 +226,7 @@ class RadiamAgent
                 $newAgent = array(
                     "id" => $this->config['agent_id'],
                     "user" => $currentUserId,
-                    "version" => $version,
+                    "version" => self::VERSION,
                     "location" => $this->config['location_id'],
                     "project_config_list" => $projectConfigList
                 );
