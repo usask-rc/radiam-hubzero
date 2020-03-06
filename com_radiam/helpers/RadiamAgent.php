@@ -140,7 +140,11 @@ class RadiamAgent
             "refresh" => $tokens->get('refresh_token')
         );
 
-        $this->radiamAPI = new RadiamAPI($this->config['radiam_host_url'], $tokens_array, $this->logger, $userId);
+        try {
+            $this->radiamAPI = new RadiamAPI($this->config['radiam_host_url'], $tokens_array, $this->logger, $userId);
+        } catch (Exception $e) {
+            throw new Exception("RadiamAPI failed to create with error message {$e->getMessage()}.");
+        }
 
         list($checkinStatus, $errMessage) = $this->agentCheckin();
         $this->project_config = $this->config[$this->project_key];
