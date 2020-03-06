@@ -19,7 +19,7 @@ use Lang;
 require_once \Component::path('com_projects') . DS . 'models' . DS . 'orm' . DS . 'project.php';
 require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radtoken.php';
 require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radproject.php';
-require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radpconfig.php';
+require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radconfig.php';
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'radiam_api.php';
 
 // No direct access
