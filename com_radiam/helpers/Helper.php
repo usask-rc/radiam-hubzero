@@ -37,15 +37,26 @@ class Helper
 	 */
 	public static function setLogger()
     {   
-        $logger = new Logger(Config::get('application_env'));
-        $streamHandler = new StreamHandler(Config::get('log_path', PATH_APP . DS . 'logs') . '/radiam.log', Logger::DEBUG);
+        if (!App::has('log')) {
+            $logger = new Logger(Config::get('application_env'));
+            $streamHandler = new StreamHandler(Config::get('log_path', PATH_APP . DS . 'logs') . '/radiam.log', Logger::INFO);
 
-        $logFormatter = "%datetime% [%level_name%] %message%\n";
-        $formatter = new LineFormatter($logFormatter);
-        $streamHandler->setFormatter($formatter);
-        $logger->pushHandler($streamHandler);
+            $logFormatter = "%datetime% [%level_name%] %message%\n";
+            $formatter = new LineFormatter($logFormatter);
+            $streamHandler->setFormatter($formatter);
+            $logger->pushHandler($streamHandler);
 
-        return $logger;
+            return $logger;
+		}
+        else {
+            // This method is only called once per request
+            App::get('log')->register('radiam', array(
+                'file'       => 'radiam.log',
+                'level'      => 'info',
+                'format'     => "%datetime% [%level_name%] %message%\n"
+            ));
+            return App::get('log')->logger('radiam');
+        }
     }
     
     /**
