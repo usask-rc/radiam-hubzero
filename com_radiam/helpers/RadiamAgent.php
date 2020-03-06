@@ -103,6 +103,11 @@ class RadiamAgent
     const VERSION = "1.2.0";
 
     /**
+     * @const int The number of retries of full run 
+     */
+    const RETRIES = 3;
+
+    /**
      * Constructor
      *
      * @param array $config The radiam hubzero agent config 
@@ -253,10 +258,10 @@ class RadiamAgent
      * 
      * @return array $respText $status
      */
-    public function fullRun() 
+    public function fullRun($retries = self::RETRIES) 
     {  
         $queue = new SplQueue();
-        while (true) {
+        while ($retries > 0) {
             try {
                 // If the connection between a hubzero project and a radiam project is created 
                 // after last run of the radiam agent, then execute the full run function
@@ -279,8 +284,8 @@ class RadiamAgent
                 }
 
                 // New project is added to the Radiam Component
-                $this->logger->info("Start to full run the Project {$this->project_key}.");
-                $queue->push($this->config[$this->project_key]['rootdir']);
+                $this->logger->info("Start to full run the Project {$this->project_key}...");
+                $queue->push($this->project_config['rootdir']);
                 $files = array();
                 $bulkdata = array();
                 $bulksize = 0;
@@ -326,10 +331,10 @@ class RadiamAgent
                                 }
                             }
                         } catch(Exception $e) {
-                            $this->logger->warning($e);
+                            $this->logger->warning($e->getMessage());
                         }
                     } catch(Exception $e) {
-                        $this->logger->warning($e);
+                        $this->logger->warning($e->getMessage());
                         break;
                     }
                 }
@@ -350,11 +355,12 @@ class RadiamAgent
                     return array($respText, $status);
                 }
             } catch (Exception $e) {
-                // file_put_contents("e", print_r($e, true));
-                throw new Exception($e);
+                $this->logger->warning($e->getMessage());
+                $retries -= 1;
                 sleep(10);
             }
         }
+        return array("Ran out of retries.", 500);
     }
 
     /**
@@ -386,7 +392,11 @@ class RadiamAgent
         }
     }
 
-
+    /**
+     * Clear all the records in the radqueue table
+     *
+     * @return void
+     */
     public function clearQueue() {
         $radiamQueue = $this->getRadiamQueue();
         if ($radiamQueue)
