@@ -9,6 +9,8 @@ namespace Components\Radiam\Helpers;
 use Components\Radiam\Models\Radtoken;
 use Components\Radiam\Helpers\RadiamAPI;
 use Components\Projects\Models\Orm\Project;
+use Components\Radiam\Models\RadConfig;
+use Components\Radiam\Models\RadProject;
 use Exception;
 use FilesystemIterator;
 use SplQueue;
@@ -16,6 +18,8 @@ use Lang;
 
 require_once \Component::path('com_projects') . DS . 'models' . DS . 'orm' . DS . 'project.php';
 require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radtoken.php';
+require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radproject.php';
+require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radpconfig.php';
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'radiam_api.php';
 
 // No direct access
@@ -256,18 +260,17 @@ class RadiamAgent
             try {
                 // If the connection between a hubzero project and a radiam project is created 
                 // after last run of the radiam agent, then execute the full run function
-                $sql = "SELECT `last_run`
-                        FROM `#__radiam_radconfigs`";
-                $this->_db->setQuery($sql);
-                $this->_db->query();                
-                $lastRun = $this->_db->loadObject()->{'last_run'};
+                $radconfigs = RadConfig::all();
+                foreach($radconfigs as $radconfig) {
+                    $lastRun = $radconfig->{'last_run'};
+                    break;  
+                }
 
-                $sql = "SELECT `created`
-                        FROM `#__radiam_radprojects`
-                        WHERE `project_id` = '{$this->project_key}'";
-                $this->_db->setQuery($sql);
-                $this->_db->query();
-                $connectionCreated = $this->_db->loadObject()->{'created'};
+                $radprojects = RadProject::whereEquals('project_id', $this->project_key);
+                foreach($radprojects as $radproject) {
+                    $connectionCreated = $radproject->created;
+                    break;
+                }
                 
                 // No new project is added to the Radiam Component
                 if ($connectionCreated < $lastRun) {
