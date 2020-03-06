@@ -69,6 +69,8 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		try {
 			// TODO: don't return loadconfigstatus
 			list($config, $loadConfigStatus) = $this->_loadConfig($logger);
+
+			// Crawl all the projects that have been associated with radiam projects
 			foreach($config['projects'] as $project_key) {
 				try {
 					$logger->info("Start crawling for Project {$project_key}.");
@@ -85,23 +87,23 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 						$agent->clearQueue();
 					}
 				} catch (Exception $e) {
-					$this->updateRadiamQueue();
-					$logger->error($e);
+					$this->updateRadiamQueue($project_key);
+					$logger->error($e->getMessage());
 				} finally {					  
 					$logger->info("Finish crawling for Project {$project_key}.");
 				}
 			}
-			// Update the last crawl run time
-			$db = App::get('db');
-			$sql = "UPDATE `#__radiam_radconfigs` SET `last_run`=now()";
-			$db->setQuery($sql);
-			$db->execute();
+			$this->updateRadiamLastrun();
 			return true;
 		} catch (Exception $e) {
 			$logger->error($e->getMessage());
 			// TODO: decide whether throw the exception or notify it as an message
 			// \Notify::error($e->getMessage());
 			throw $e;
+			// TODO: decide whether return false. If return false, the cron job will be active. No way to run it until deactivate it.
+			return false;
+		} finally {
+			$logger->info("Finish running the Radiam Cron Job postApi.");
 		}
 	}
 	
@@ -175,16 +177,31 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 	}
 
 	/**
-     * Update the last_modified field for all records in radqueue table
+     * Update the last_modified field for all records of the given project in radqueue table
      *
+	 * @param int $project_key
      * @return void
      */
-    private function updateRadiamQueue()
+    private function updateRadiamQueue($project_key)
     {
 		$db = App::get('db');
 		$sql = "UPDATE `#__radiam_radqueue`
-                SET `last_modified` = now()";
+				SET `last_modified` = now()
+				WHERE `project_id` = '{$project_key}'";
         $db->setQuery($sql);
         $db->query();
-    }
+	}
+	
+	/**
+     * Update the last_run time of the radiam agent
+     *
+     * @return void
+     */
+	private function updateRadiamLastrun()
+	{
+		$db = App::get('db');
+		$sql = "UPDATE `#__radiam_radconfigs` SET `last_run`=now()";
+		$db->setQuery($sql);
+		$db->execute();
+	}
 }
