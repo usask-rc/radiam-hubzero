@@ -134,7 +134,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 
 		if (!array_key_exists('agent_id', $config)) {
 			$db = App::get('db');
-			$config['agent_id'] = $this->generateUuid();
+			$config['agent_id'] = Helper::generateUuid();
             $currentUserId = User::get('id');
 			$sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
 					VALUES ('agent_id', '{$config['agent_id']}', now(), $currentUserId);";
@@ -172,23 +172,6 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		}
 
 		return array($config, true);
-	}
-
-	/**
-	 * Generate an uuid
-	 *
-	 * @return string
-	 */
-	private function generateUuid()
-	{
-		return sprintf(
-			'%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-			mt_rand(0, 0xffff), mt_rand(0, 0xffff),
-			mt_rand(0, 0xffff),
-			mt_rand(0, 0x0fff) | 0x4000,
-			mt_rand(0, 0x3fff) | 0x8000,
-			mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
-		);
 	}
 
 	/**
