@@ -22,7 +22,6 @@ class Helper extends Module
 	 */
 	public function display()
 	{	
-		file_put_contents("params.txt", print_r($this->params, true));
 		$this->moduleclass = $this->params->get('moduleclass', '');
 		$limit = intval($this->params->get('projectcount', 'mod_radiam'));
 		if ($limit == 0) { $limit = 5; }
@@ -30,7 +29,6 @@ class Helper extends Module
 		$this->projects = $projects;
 		$this->limit= $limit;
 		$this->total = count($projects);
-		file_put_contents("total.txt", print_r($this->total, true));
 		require $this->getLayoutPath();
 	}
 
@@ -70,7 +68,6 @@ class Helper extends Module
 		);
 		$radiamAPI = new RadiamAPI($radiam_host_url, $tokens_array, $logger, $userId);
 		$projects = $radiamAPI->getProjects()->results;
-		file_put_contents("projects.txt", print_r($projects, true));
 		return $projects;
 	}
 }
