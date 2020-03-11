@@ -37,7 +37,7 @@ use Components\Radiam\Models\Files;
 use Components\Radiam\Models\Project;
 use Components\Radiam\Models\Projects;
 use Components\Radiam\Models\Radtoken;
-use Components\Radiam\Helpers\Helper;
+use Components\Radiam\Helpers\RadiamHelper;
 use Hubzero\Component\SiteController;
 use Hubzero\Utility\String;
 use Hubzero\Utility\Sanitize;
@@ -99,7 +99,9 @@ class Radiam extends SiteController
             $token = Radtoken::one(User::get('id'));
             if ($token !== false && !$token->expired($this))
             {
-                $this->redirect($url='display', null, null);
+                $dashboardUrl = 'index.php?option=com_members&id=' . User::get('id') . '&active=dashboard';
+                $this->redirect($dashboardUrl, Lang::txt('You have already logined on Radiam.'), null);
+                
             }
             else if($token === false) {
                 if ($username != null && $password != null)
@@ -108,7 +110,8 @@ class Radiam extends SiteController
                     $this->config->set('clientsecret', $password);
     
                     $token = Radtoken::get_token($this, $username, $password);
-                    $this->redirect($url='display', null, null);
+                    $dashboardUrl = 'index.php?option=com_members&id=' . User::get('id') . '&active=dashboard';
+                    $this->redirect($dashboardUrl, Lang::txt('Login to Radiam successfully'), null);
                     $this->view
                         ->set('config', $this->config)
                         ->set('filters', $filters);
@@ -175,7 +178,7 @@ class Radiam extends SiteController
     public function getJsonFromRadiamApi($access_token, $radiam_url, $path, $query=array()) {
         $header[] = "Authorization: Bearer " . $access_token;
 
-        $url = Helper::buildUrl($radiam_url, $path);
+        $url = RadiamHelper::buildUrl($radiam_url, $path);
         if (isset($query)) {
             $url = $url . "?" . http_build_query($query);
         }
@@ -217,7 +220,7 @@ class Radiam extends SiteController
     public function postJsonFromRadiamApi($access_token, $radiam_url, $path, $query=array()) {
         $header[] = "Authorization: Bearer " . $access_token;
 
-        $url = Helper::buildUrl($radiam_url, $path);
+        $url = RadiamHelper::buildUrl($radiam_url, $path);
         if (isset($query)) {
             $url = $url . "?" . http_build_query($query);
         }

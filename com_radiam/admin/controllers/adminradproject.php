@@ -4,7 +4,7 @@ namespace Components\Radiam\Admin\Controllers;
 use Hubzero\Component\AdminController;
 use Components\Radiam\Models\RadProject;
 use Components\Projects\Models\Orm\Project;
-use Components\Radiam\Helpers\Helper;
+use Components\Radiam\Helpers\RadiamHelper;
 use Components\Radiam\Helpers\RadiamAPI;
 use Request;
 use Notify;
@@ -14,7 +14,7 @@ use App;
 use Components\Radiam\Models\RadConfig;
 use Components\Radiam\Models\Radtoken;
 
-require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'Helper.php';
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'RadiamHelper.php';
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'radiam_api.php';
 require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radconfig.php';
 require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radtoken.php';
@@ -150,7 +150,7 @@ class Adminradproject extends AdminController
 			$radiam_host_url = $r->configvalue;
 			break;
 		}		
-		$logger = Helper::setLogger();
+		$logger = RaidamHelper::setLogger();
 		$radiam_project = array();
 		foreach (Radtoken::all() as $token) {
 			$tokens_array = array (

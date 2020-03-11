@@ -8,13 +8,13 @@
 defined('_HZEXEC_') or die();
 
 use Components\Radiam\Helpers\RadiamAgent;
-use Components\Radiam\Helpers\Helper;
+use Components\Radiam\Helpers\RadiamHelper;
 use Components\Radiam\Helpers\ErrorCode;
 use Components\Radiam\Models\RadConfig;
 use Components\Radiam\Models\RadProject;
 
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'RadiamAgent.php';
-require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'Helper.php';
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'RadiamHelper.php';
 require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'ErrorCode.php';
 require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radconfig.php';
 require_once \Component::path('com_radiam') . DS . 'models' . DS . 'radproject.php';
@@ -64,7 +64,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 	 */
     public function postApi(\Components\Cron\Models\Job $job)
     {   
-		$logger = Helper::setLogger();
+		$logger = RadiamHelper::setLogger();
 		$logger->info("Running the Radiam Cron Job postApi...");
 		try {
 			// TODO: don't return loadconfigstatus

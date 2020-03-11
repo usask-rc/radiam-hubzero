@@ -12,8 +12,8 @@ use Lang;
 use User;
 use Date;
 
-use Components\Radiam\Helpers\Helper;
-require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'Helper.php';
+use Components\Radiam\Helpers\RadiamHelper;
+require_once \Component::path('com_radiam') . DS . 'helpers' . DS . 'RadiamHelper.php';
 
 /**
  * Model class for an oauth 2 token
@@ -145,7 +145,7 @@ class Radtoken extends Relational
 
         // REST API Token URL
         // TODO Replace with proper constant / config
-        $token_url = Helper::buildUrl($radiam_url, "/api/token/verify/");
+        $token_url = RadiamHelper::buildUrl($radiam_url, "/api/token/verify/");
 
         if ($debug)
         {
@@ -316,7 +316,7 @@ class Radtoken extends Relational
 
             // REST API Token URL
             // TODO Replace with proper constant / config
-            $token_url = Helper::buildUrl($radiam_url, "/api/token/refresh/");
+            $token_url = RadiamHelper::buildUrl($radiam_url, "/api/token/refresh/");
 
             if ($debug)
             {
@@ -406,7 +406,7 @@ class Radtoken extends Relational
             );
 
             // REST API Token URL
-            $token_url = Helper::buildUrl($radiam_url, "/api/token/");
+            $token_url = RadiamHelper::buildUrl($radiam_url, "/api/token/");
 
             if ($debug)
             {

@@ -18,7 +18,7 @@ use Monolog\Formatter\LineFormatter;
  * General Helper functions
  *
  */
-class Helper
+class RadiamHelper
 {   
     /**
 	 * Return a combined url (endpoint)
