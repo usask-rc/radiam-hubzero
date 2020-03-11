@@ -54,7 +54,7 @@ $projects = $this->projects;
 
 	<?php if ($this->total > $this->limit) { ?>
 		<p class="note">
-			<?php echo Lang::txt('MOD_MYPROJECTS_YOU_HAVE_MORE', $this->limit, $this->total, Route::url('index.php?option=com_radiam&task=display')); ?>
+			<?php echo Lang::txt('MOD_RADIAM_YOU_HAVE_MORE', $this->limit, $this->total, Route::url('index.php?option=com_radiam&task=display')); ?>
 		</p>
 	<?php } ?>
 </div>

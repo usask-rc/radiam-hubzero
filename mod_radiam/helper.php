@@ -22,9 +22,10 @@ class Helper extends Module
 	 */
 	public function display()
 	{	
-		$this->moduleclass = $this->params->get('moduleclass', '');
-		$limit = intval($this->params->get('projectcount', 'mod_radiam'));
-		if ($limit == 0) { $limit = 5; }
+		// Get the module parameters
+		$params = $this->params;
+		$this->moduleclass = $params->get('moduleclass', '');
+		$limit = intval($params->get('limit', 5));
 		$projects = $this->getRadProjects($limit);
 		$this->projects = $projects;
 		$this->limit= $limit;
