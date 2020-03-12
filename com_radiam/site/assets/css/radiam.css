@@ -32,24 +32,24 @@
     font-weight: bold;
 }
 
-.show-all > .btn.btn-primary {
+/* .show-all > .btn.btn-primary {
     width: 120px;
-}
-.show > .btn.btn-primary {
+} */
+/* .show > .btn.btn-primary {
     width: 120px;
-}
+} */
 
 .hide-all {
     display: none;
 }
 
-.hide-all > .btn.btn-secondary {
+/* .hide-all > .btn.btn-secondary {
     width: 120px;
-}
+} */
 
-.hide > .btn.btn-secondary {
+/* .hide > .btn.btn-secondary {
     width: 120px;
-}
+} */
 
 .main-metadata-container {
     padding-left: 10px;
