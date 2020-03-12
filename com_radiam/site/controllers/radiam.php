@@ -59,6 +59,7 @@ class Radiam extends SiteController
     const FILES_PATH = "search/";
     const PROJECTS_API = "/api/projects/";
     const GROUPS_API = "/api/researchgroups/";
+    const LOCATIONS_API = "/api/locations/";
     private $token = null;
 
     /**
@@ -159,7 +160,7 @@ class Radiam extends SiteController
 
     public function getLocations($access_token, $radiam_url) {
         // TODO Replace with proper constant / config
-        $locationsJson = $this->getJsonFromRadiamApi($access_token, $radiam_url, "/api/locations/");
+        $locationsJson = $this->getJsonFromRadiamApi($access_token, $radiam_url, self::LOCATIONS_API);
         return $locationsJson;
     }
 
@@ -322,12 +323,12 @@ class Radiam extends SiteController
 
         $radiam_url = $this->getRadiamURL();
 
-        $users = $this->getUsers($token->get('access_token'), $radiam_url);
+        $locations = $this->getLocations($token->get('access_token'), $radiam_url);
 
         $this->view
             ->set('config', $this->config)
             ->set('filters', null)
-            ->set('users', $users)
+            ->set('locations', $locations)
             ->display();
 
     }

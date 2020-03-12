@@ -94,7 +94,7 @@ $this->css()
 
 <?php
 
-    $users = $this->get('users');
+    $locations = $this->get('locations');
 
 ?>
 
@@ -135,9 +135,9 @@ $this->css()
                     } ?>
                 </h3>
 
-                <?php var_dump($users); ?>
-                <?php if ($users && $users->count > 0) { ?>
-                    <?php echo "We've got" . $users->count ?>
+                <?php var_dump($locations); ?>
+                <?php if ($locations && $locations->count > 0) { ?>
+                    <?php echo "We've got" . $locations->count ?>
                     <ol class="blog-entries entries">
                     </ol>
 
