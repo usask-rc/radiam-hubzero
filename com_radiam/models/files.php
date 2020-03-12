@@ -19,14 +19,16 @@ class Files
     public $previous = null;
     public $files = array();
 
-    function __construct($json=null) {
-        if (isset($json) && isset($json->results)) {
+    function __construct($filesJson=null, $locationsArray=null) {
+        if (isset($filesJson) && isset($filesJson->results)) {
             $hasCount = false;
-            if (isset($json->count)) {
-                $this->count = $json->count;
+            if (isset($filesJson->count)) {
+                $this->count = $filesJson->count;
             }
-            foreach ($json->results as &$fileJson) {
-                $file = new File($fileJson);
+            foreach ($filesJson->results as &$fileJson) {
+                $fileId = $fileJson->id;
+                $locationName = $locationsArray[$fileId];
+                $file = new File($fileJson, $locationName);
                 array_push($this->files, $file);
             }
             unset($fileJson);

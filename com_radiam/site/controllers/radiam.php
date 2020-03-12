@@ -149,25 +149,35 @@ class Radiam extends SiteController
     }
 
     public function getUsers($access_token, $radiam_url) {
-        // TODO Replace with proper constant / config
         return $this->getJsonFromRadiamApi($access_token, $radiam_url, self::USERS_API);
     }
 
     public function getProjects($access_token, $radiam_url) {
-        // TODO Replace with proper constant / config
         $projectsJson = $this->getJsonFromRadiamApi($access_token, $radiam_url, self::PROJECTS_API);
         return new Projects($projectsJson);
     }
 
     public function getLocations($access_token, $radiam_url) {
-        // TODO Replace with proper constant / config
         $locationsJson = $this->getJsonFromRadiamApi($access_token, $radiam_url, self::LOCATIONS_API);
         return $locationsJson;
     }
 
+    public function getLocation($access_token, $radiam_url, $locationId) {
+        $locationJson = $this->getJsonFromRadiamApi($access_token, $radiam_url, self::LOCATIONS_API . $locationId);
+        return $locationJson;
+    }
+
     public function getFiles($accessToken, $radiamUrl, $projectId, $query) {
         $filesJson = $this->postJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query);
-        return new Files($filesJson);
+        $locationsArray = array();
+        foreach ($filesJson->results as $fileJson) {
+            $locationId = $fileJson->location;
+            $locationJson = $this->getLocation($accessToken, $radiamUrl, $locationId);
+            if (isset($locationJson) && isset($locationJson->display_name)) {
+                $locationsArray[$fileJson->id] = $locationJson->display_name;
+            }
+        }
+        return new Files($filesJson, $locationsArray);
     }
 
     public function getGroups($access_token, $radiam_url) {
@@ -198,6 +208,7 @@ class Radiam extends SiteController
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_IPRESOLVE, CURL_IPRESOLVE_V4 );
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 7); //Timeout after 7 seconds
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true); //otherwise 301 error
         curl_setopt($ch, CURLINFO_HEADER_OUT, false);
         curl_setopt($ch, CURLOPT_HEADER, false);
 

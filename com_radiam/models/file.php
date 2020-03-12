@@ -14,7 +14,8 @@ use Date;
 class File
 {
     public $id = "";
-    public $location = "";
+    public $locationId = "";
+    public $locationName = "";
     public $extension = "";
     public $lastModified = "";
     public $lastChange = "";
@@ -30,9 +31,10 @@ class File
     public $lastAccess = "";
     public $indexedDate = "";
 
-    function __construct($json) {
+    function __construct($json, $locationName) {
         $this->id = $json->id;
-        $this->location = $json->location;
+        $this->locationId = $json->location;
+        $this->locationName = $locationName;
         $this->extension = isset($json->extension) ? $json->extension : null;
         $this->lastModified = $json->last_modified;
         $this->lastChange = $json->last_change;
@@ -82,7 +84,7 @@ class File
                     <?php echo $this->renderMain($this->path, "col-sm-8 col-md-8 col-lg-8"); ?>
                     <?php echo $this->renderMain(formatBytes($this->filesize, 2), "col-sm-1 col-md-1 col-lg-1"); ?>
                     <?php echo $this->renderMain($this->agent, "col-sm-1 col-md-1 col-lg-1"); ?>
-                    <?php echo $this->renderMain($this->location, "col-sm-1 col-md-1 col-lg-1"); ?>
+                    <?php echo $this->renderMain($this->locationName, "col-sm-1 col-md-1 col-lg-1"); ?>
                     <div class="show col-sm-1 col-md-1 col-lg-1">
                         <div class="btn btn-primary"><?php echo Lang::txt('COM_RADIAM_MORE'); ?></div>
                     </div>
