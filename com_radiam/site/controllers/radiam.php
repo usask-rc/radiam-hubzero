@@ -361,7 +361,7 @@ class Radiam extends SiteController
 
         $radiam_url = $this->getRadiamURL();
 
-        $users = $this->getUsers($token->get('access'), $radiam_url);
+        $users = $this->getUsers($token->get('access_token'), $radiam_url);
 
         $this->view
             ->set('config', $this->config)
