@@ -58,6 +58,7 @@ class Radiam extends SiteController
 {
     const FILES_PATH = "search/";
     const PROJECTS_API = "/api/projects/";
+    const GROUPS_API = "/api/researchgroups/";
     private $token = null;
 
     /**
@@ -165,6 +166,11 @@ class Radiam extends SiteController
     public function getFiles($accessToken, $radiamUrl, $projectId, $query) {
         $filesJson = $this->postJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query);
         return new Files($filesJson);
+    }
+
+    public function getGroups($access_token, $radiam_url) {
+        // TODO Replace with proper constant / config
+        return $this->getJsonFromRadiamApi($access_token, $radiam_url, self::GROUPS_API);
     }
 
     /**
@@ -336,12 +342,12 @@ class Radiam extends SiteController
 
         $radiam_url = $this->getRadiamURL();
 
-        $users = $this->getUsers($token->get('access'), $radiam_url);
+        $groups = $this->getGroups($token->get('access_token'), $radiam_url);
 
         $this->view
             ->set('config', $this->config)
             ->set('filters', null)
-            ->set('users', $users)
+            ->set('groups', $groups)
             ->display();
 
     }
