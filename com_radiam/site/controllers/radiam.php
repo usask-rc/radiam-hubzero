@@ -60,6 +60,7 @@ class Radiam extends SiteController
     const PROJECTS_API = "/api/projects/";
     const GROUPS_API = "/api/researchgroups/";
     const LOCATIONS_API = "/api/locations/";
+    const USERS_API = "/api/users/";
     private $token = null;
 
     /**
@@ -149,7 +150,7 @@ class Radiam extends SiteController
 
     public function getUsers($access_token, $radiam_url) {
         // TODO Replace with proper constant / config
-        return $this->getJsonFromRadiamApi($access_token, $radiam_url, "/api/users/");
+        return $this->getJsonFromRadiamApi($access_token, $radiam_url, self::USERS_API);
     }
 
     public function getProjects($access_token, $radiam_url) {
