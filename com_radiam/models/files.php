@@ -11,6 +11,7 @@ use Component;
 use Lang;
 use User;
 use Date;
+use Exception;
 
 class Files
 {
@@ -19,7 +20,7 @@ class Files
     public $previous = null;
     public $files = array();
 
-    function __construct($filesJson=null, $locationsArray=null) {
+    function __construct($filesJson=null, $locationsArray=array()) {
         if (isset($filesJson) && isset($filesJson->results)) {
             $hasCount = false;
             if (isset($filesJson->count)) {
@@ -27,7 +28,11 @@ class Files
             }
             foreach ($filesJson->results as &$fileJson) {
                 $fileId = $fileJson->id;
-                $locationName = $locationsArray[$fileId];
+                try {
+                    $locationName = $locationsArray[$fileId];
+                } catch(Exception $e) {
+                    $locationName = null;
+                }
                 $file = new File($fileJson, $locationName);
                 array_push($this->files, $file);
             }
