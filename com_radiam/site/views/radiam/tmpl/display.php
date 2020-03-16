@@ -126,10 +126,7 @@ function formatBytes($bytes, $decimals) {
                             <div class="col-sm-1 col-md-1 col-lg-1">
                                 <?php echo Lang::txt('COM_RADIAM_SIZE'); ?>
                             </div>
-                            <div class="col-sm-1 col-md-1 col-lg-1">
-                                <?php echo Lang::txt('COM_RADIAM_AGENT'); ?>
-                            </div>
-                            <div class="col-sm-1 col-md-1 col-lg-1">
+                            <div class="col-sm-2 col-md-2 col-lg-2">
                                 <?php echo Lang::txt('COM_RADIAM_LOCATION'); ?>
                             </div>
                             <div class="show-all col-sm-1 col-md-1 col-lg-1">

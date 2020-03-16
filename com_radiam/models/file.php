@@ -83,8 +83,7 @@ class File
                 <div class="row">
                     <?php echo $this->renderMain($this->path, "col-sm-8 col-md-8 col-lg-8"); ?>
                     <?php echo $this->renderMain(formatBytes($this->filesize, 2), "col-sm-1 col-md-1 col-lg-1"); ?>
-                    <?php echo $this->renderMain($this->agent, "col-sm-1 col-md-1 col-lg-1"); ?>
-                    <?php echo $this->renderMain($this->locationName, "col-sm-1 col-md-1 col-lg-1"); ?>
+                    <?php echo $this->renderMain($this->locationName, "col-sm-2 col-md-2 col-lg-2"); ?>
                     <div class="show col-sm-1 col-md-1 col-lg-1">
                         <div class="btn btn-primary"><?php echo Lang::txt('COM_RADIAM_MORE'); ?></div>
                     </div>
