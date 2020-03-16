@@ -30,6 +30,13 @@ class File
     public $pathParent = "";
     public $lastAccess = "";
     public $indexedDate = "";
+    public $type = "";
+    public $pathParentKeyword = "";
+    public $pathKeyword = "";
+    public $pathAgnostic = "";
+    public $pathAgnosticKeyword = "";
+    public $entity = "";
+
 
     function __construct($json, $locationName) {
         $this->id = $json->id;
@@ -49,6 +56,12 @@ class File
         $this->pathParent = $json->path_parent;
         $this->lastAccess = $json->last_access;
         $this->indexedDate = $json->indexed_date;
+        $this->type = $json->type;
+        $this->pathParentKeyword = $json->path_parent_keyword;
+        $this->pathKeyword = $json->path_keyword;
+        $this->pathAgnostic = $json->path_agnostic;
+        $this->pathAgnosticKeyword = $json->path_agnostic_keyword;
+        $this->entity = $json->entity;
     }
 
     function renderMain($value, $classes) {
@@ -92,17 +105,25 @@ class File
                     </div>
                 </div>
                 <div class="extra-metadata-container">
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_ID', $this->id); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_NAME', $this->name); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_EXT', $this->extension); ?>
                     <?php echo $this->renderExtra('COM_RADIAM_LABEL_OWNER', $this->owner); ?>
                     <?php echo $this->renderExtra('COM_RADIAM_LABEL_GROUP', $this->group); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_PARENT', $this->pathParent); ?>
                     <?php echo $this->renderExtra('COM_RADIAM_LABEL_LAST_MODIFIED', $this->lastModified); ?>
                     <?php echo $this->renderExtra('COM_RADIAM_LABEL_LAST_CHANGE', $this->lastChange); ?>
                     <?php echo $this->renderExtra('COM_RADIAM_LABEL_LAST_ACCESS', $this->lastAccess); ?>
                     <?php echo $this->renderExtra('COM_RADIAM_LABEL_INDEXED_BY', $this->indexedBy); ?>
                     <?php echo $this->renderExtra('COM_RADIAM_LABEL_INDEXING_DATE', $this->indexingDate); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_TYPE', $this->type); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_AGENT', $this->agent); ?>
                     <?php echo $this->renderExtra('COM_RADIAM_LABEL_INDEXED_DATE', $this->indexedDate); ?>
-                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_NAME', $this->name); ?>
-                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_EXT', $this->extension); ?>
-                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_PARENT', $this->pathParent); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_PATH_PARENT_KEYWORD', $this->pathParentKeyword); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_PATH_KEYWORD', $this->pathKeyword); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_PATH_AGNOSTIC', $this->pathAgnostic); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_PATH_AGNOSTIC_KEYWORD', $this->pathAgnosticKeyword); ?>
+                    <?php echo $this->renderExtra('COM_RADIAM_LABEL_ENTITY', $this->entity); ?>
                 </div>
             </div>
         <?php
