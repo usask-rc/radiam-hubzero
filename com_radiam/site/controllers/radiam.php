@@ -236,8 +236,12 @@ class Radiam extends SiteController
      * $path - the path of the api to use
      * $query - an array of query string parameters to add to the request
     **/
-    public function postJsonFromRadiamApi($access_token, $radiam_url, $path, $query=array()) {
-        $header[] = "Authorization: Bearer " . $access_token;
+    public function postJsonFromRadiamApi($access_token, $radiam_url, $path, $query=null) {
+        $headers = array(
+            'Content-type: application/json',
+            'Accept: application/json'
+        );
+        array_push($headers, "Authorization: Bearer " . $access_token);
 
         $url = RadiamHelper::buildUrl($radiam_url, $path);
         if (isset($query)) {
@@ -256,12 +260,17 @@ class Radiam extends SiteController
         curl_setopt($ch, CURLOPT_HEADER, false);
         // curl_setopt($ch, CURLOPT_POST, true);
 
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        if (isset($query["q"]) and $query["q"] != null) {
+            $body = array("query" => array("bool" => array("filter" => array(array("term" => array("type" => "file"))), 
+                                                           "should" => array(array("query_string" => array("query" => "*".$query["q"]."*"))),
+                                                           "minimum_should_match" => 1)));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));      
+        }
 
         $output = curl_exec($ch);
         $err = curl_error($ch);
-        $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
         curl_close($ch);
         
         if ($err) {

@@ -86,7 +86,7 @@ function formatBytes($bytes, $decimals) {
 }
 
 ?>
-    <form action="<?php echo Route::url('index.php?option=' . $this->option . '&task=browse'); ?>" method="get" class="section-inner">
+    <form action="<?php echo Route::url('index.php?option=' . $this->option . '&task=display'); ?>" method="get" class="section-inner">
         <div class="subject">
             <?php if ($this->getError()) { ?>
                 <p class="error"><?php echo $this->getError(); ?></p>
