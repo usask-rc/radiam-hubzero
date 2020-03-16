@@ -50,6 +50,7 @@ use Lang;
 use Route;
 use User;
 use Date;
+use stdClass;
 
 /**
  * Blog controller class for entries
@@ -168,7 +169,24 @@ class Radiam extends SiteController
     }
 
     public function getFiles($accessToken, $radiamUrl, $projectId, $query) {
-        $filesJson = $this->postJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query);
+        if (isset($query["q"]) and $query["q"] != null) {
+            // for search action, two api calls will be operated, one for target files, one for target directories
+            // after receiving these two responses, we need to combine the results for further dispaly
+            $qFilesbody = array("query" => array("bool" => array("filter" => array(array("term" => array("type" => "file"))), 
+                                                                 "should" => array(array("query_string" => array("query" => "*".$query["q"]."*"))),
+                                                                 "minimum_should_match" => 1)));
+            $qFilesJson = $this->postJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query, $qFilesbody);
+            $qDirsbody = array("query" => array("bool" => array("filter" => array(array("term" => array("type" => "directory"))), 
+                                                                 "should" => array(array("query_string" => array("query" => "*".$query["q"]."*"))),
+                                                                 "minimum_should_match" => 1)));
+            $qDirsJson = $this->postJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query, $qDirsbody);
+            $filesJson = new StdClass;
+            $filesJson->count = $qFilesJson->count + $qDirsJson->count;
+            $filesJson->results = array_merge($qFilesJson->results, $qDirsJson->results);
+        }
+        else {
+            $filesJson = $this->postJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query);
+        }
         $locationsArray = array();
         foreach ($filesJson->results as $fileJson) {
             $locationId = $fileJson->location;
@@ -236,7 +254,7 @@ class Radiam extends SiteController
      * $path - the path of the api to use
      * $query - an array of query string parameters to add to the request
     **/
-    public function postJsonFromRadiamApi($access_token, $radiam_url, $path, $query=null) {
+    public function postJsonFromRadiamApi($access_token, $radiam_url, $path, $query=null, $body=null) {
         $headers = array(
             'Content-type: application/json',
             'Accept: application/json'
@@ -262,11 +280,10 @@ class Radiam extends SiteController
 
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-        if (isset($query["q"]) and $query["q"] != null) {
-            $body = array("query" => array("bool" => array("filter" => array(array("term" => array("type" => "file"))), 
-                                                           "should" => array(array("query_string" => array("query" => "*".$query["q"]."*"))),
-                                                           "minimum_should_match" => 1)));
-            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));      
+        if ($body != null) {
+            file_put_contents("body.txt", print_r($body , true));
+            file_put_contents("here.txt", print_r("here" , true));
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
         }
 
         $output = curl_exec($ch);
