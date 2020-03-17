@@ -24,7 +24,6 @@ class Helper extends Module
 	{	
 		// Get the module parameters
 		$params = $this->params;
-		$this->moduleclass = $params->get('moduleclass', '');
 		$limit = intval($params->get('limit', 5));
 		$projects = $this->getRadProjects($limit);
 		$this->projects = $projects;
