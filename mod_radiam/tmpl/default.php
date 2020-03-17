@@ -8,7 +8,7 @@ $this->css();
 $projects = $this->projects;
 
 ?>
-<div<?php echo ($this->moduleclass) ? ' class="' . $this->moduleclass . '"' : ''; ?> id="radiam">
+<div id="radiam">
 	
 	<?php if ($this->projects === null) { ?>
 		<ul class="module-nav">
