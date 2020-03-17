@@ -9,29 +9,33 @@ $projects = $this->projects;
 
 ?>
 <div<?php echo ($this->moduleclass) ? ' class="' . $this->moduleclass . '"' : ''; ?> id="radiam">
-	<?php if ($this->params->get('button_show_add', 1)) { ?>
-	<ul class="module-nav">
-		<?php if ($this->params->get('button_show_add', 1)) { ?>
-		<li>
-			<a class="icon-login" href="<?php echo Route::url('index.php?option=com_radiam&task=login'); ?>">
-				<?php echo Lang::txt('MOD_RADIAM_LOGIN'); ?>
-			</a>
-		</li>
-		<?php } ?>
-	</ul>
-	<?php } ?>
-	<!-- <h4 class="category"><?php echo Lang::txt('MOD_RADIAM_PROJECTS'); ?></h4> -->
+	
 	<?php if ($this->projects === null) { ?>
+		<ul class="module-nav">
+			<li>
+				<a class="icon-login" href="<?php echo Route::url('index.php?option=com_radiam&task=login'); ?>">
+					<?php echo Lang::txt('MOD_RADIAM_LOGIN'); ?>
+				</a>
+			</li>
+		</ul>
 		<p>
 			<?php echo Lang::txt('MOD_RADIAM_LOGIN_FIRST'); ?>
 		</p>
 	<?php } 
 		elseif ($this->total == 0) {?>
-		<p>
-			<?php echo Lang::txt('MOD_RADIAM_NO_PROJECTS'); ?>
-		</p>
+		<ul class="module-nav">
+			<li>
+				<?php echo Lang::txt('MOD_RADIAM_NO_PROJECTS'); ?>
+			</li>
+		</ul>
+	<?php } 
+		else {?>
+		<ul class="module-nav">
+			<li>
+				<?php echo Lang::txt('MOD_RADIAM_LIST_PROJECTS'); ?>
+			</li>
+		</ul>
 	<?php } ?>
-
 	<?php if ($projects && $this->total > 0) { ?>
 		<ul class="compactlist">
 			<?php
