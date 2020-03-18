@@ -2,6 +2,7 @@
 namespace Modules\Radiam;
 
 use Hubzero\Module\Module;
+use Hubzero\Config\Registry;
 use App;
 use Components\Radiam\Helpers\RadiamHelper;
 use Components\Radiam\Helpers\RadiamAPI;
@@ -40,34 +41,38 @@ class Helper extends Module
 	 */
 	public function getRadProjects($count)
 	{
-		// // Get a reference to the database
-		// $db = App::get('db');
-
-		// // Get a list of Projects
-		// $query = 'SELECT * FROM `#__radiam_radprojects` LIMIT ' . intval($count) . '';
-
-		// $db->setQuery($query);
-		// $projects = $db->loadObjectList();
-		// $projects = ($projects) ? $projects : array();
-		// return $projects;
-
-		foreach(RadConfig::whereEquals('configname', 'radiam_host_url') as $r) {
-			$radiam_host_url = $r->configvalue;
-			break;
-		}		
+		$this->_loadConfig();
+	
 		$logger = RadiamHelper::setLogger();
 		$userId = User::get('id');
-		try {
-			$token = Radtoken::oneOrFail($userId);
-		} catch (\Exception $e) {
+		$token = Radtoken::one($userId);
+		if ($token === false) {
 			return null;
+		}
+		else if ($token->expired($this)) {
+			$token->refresh($this);
 		}
 		$tokens_array = array (
 			"access"  => $token->get('access_token'),
 			"refresh" => $token->get('refresh_token')
 		);
+		$radiam_host_url = $this->config->get('radiamurl');
 		$radiamAPI = new RadiamAPI($radiam_host_url, $tokens_array, $logger, $userId);
 		$projects = $radiamAPI->getProjects()->results;
 		return $projects;
 	}
+
+	/**
+	 * Load Radiam Component configuration
+	 *
+	 * @return void
+	 */
+	protected function _loadConfig()
+    {	
+		$this->config = new Registry(array());
+		foreach(RadConfig::whereEquals('configname', 'radiam_host_url') as $r) {
+			$this->config->set('radiamurl', $r->configvalue);
+			break;
+		}	
+    }	
 }
