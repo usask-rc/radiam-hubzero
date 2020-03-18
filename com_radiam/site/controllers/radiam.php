@@ -114,17 +114,18 @@ class Radiam extends SiteController
                     $this->config->set('clientsecret', $password);
     
                     $token = Radtoken::get_token($this, $username, $password);
-                    $dashboardUrl = 'index.php?option=com_members&id=' . User::get('id') . '&active=dashboard';
-                    $this->redirect($dashboardUrl, Lang::txt('Login to Radiam successfully'), null);
                     $this->view
                         ->set('config', $this->config)
                         ->set('filters', $filters);
     
                     if ($token->error != "") {
                         $this->view->setError($token->errorMsg);
+                        $this->view->display();
                     }
-    
-                    $this->view->display();
+                    else {
+                        $dashboardUrl = 'index.php?option=com_members&id=' . User::get('id') . '&active=dashboard';
+                        $this->redirect($dashboardUrl, Lang::txt('Login to Radiam successfully'), null);
+                    }
                 }
                 else
                 {

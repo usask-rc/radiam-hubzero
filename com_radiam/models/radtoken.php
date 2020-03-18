@@ -436,13 +436,15 @@ class Radtoken extends Relational
             if ($err) {
                 echo "cURL Error #:" . $err;
                 return false;
-            } else {
+            } 
+            else {
                 $json = json_decode($output);
-                if (isset($json->{"error"})) {
-                    $token->error = $json->{"error"};
-                    $token->errorMsg = $json->{"error_description"};
+                if (isset($json->{"detail"})) {
+                    $token->error = "error";
+                    $token->errorMsg = $json->{"detail"};
                     return $token;
-                } else if (isset($json -> {"access"})) {
+                } 
+                else if (isset($json -> {"access"})) {
                     if ($debug)
                     {
                         echo "<div>Access Token: " . $json->{"access"} . "</div>";
