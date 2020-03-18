@@ -843,12 +843,24 @@ class RadiamAgent
 
             # get info from path
             $path_parts = pathinfo($path);
+
+            # get relative paths for path and parent path
+            $rootdir = $this->project_config['rootdir'];
+            $relativePath = ltrim(str_replace($rootdir, '', $path), DS);
+            $pathParent = $path_parts['dirname'];
+            if ($pathParent == $rootdir) {
+                $relativePathParent = '.';
+            }
+            else {
+                $relativePathParent = ltrim(str_replace($rootdir, '', $pathParent), DS);
+            }
+
             # create file metadata array
             $filemeta = array(
                 "name" =>$path_parts['basename'],
                 "extension" => $path_parts['extension'],
-                "path_parent" => $path_parts['dirname'],
-                "path" => $path,
+                "path_parent" => $relativePathParent,
+                "path" => $relativePath,
                 "filesize" => $stat['size'],
                 "owner" => $owner,
                 "group" => $group,
@@ -903,13 +915,24 @@ class RadiamAgent
             # get info from path
             $path_parts = pathinfo($path);
 
+            # get relative paths for path and parent path
+            $rootdir = $this->project_config['rootdir'];
+            $relativePath = ltrim(str_replace($rootdir, '', $path), DS);
+            $pathParent = $path_parts['dirname'];
+            if ($pathParent == $rootdir) {
+                $relativePathParent = '.';
+            }
+            else {
+                $relativePathParent = ltrim(str_replace($rootdir, '', $pathParent), DS);
+            }
+
             # get number of items and files in the directory
             list($filecount, $itemcount) = $this->getDirItemsCount($path);
             # create file metadata array
             $dirmeta = array(
                 "name" =>$path_parts['basename'],
-                "path" => $path,
-                "path_parent" => $path_parts['dirname'],
+                "path" => $relativePath,
+                "path_parent" => $relativePathParent,
                 "items" => $itemcount,
                 "file_num_in_dir" => $filecount,
                 "owner" => $owner,
