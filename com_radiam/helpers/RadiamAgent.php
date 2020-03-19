@@ -223,12 +223,14 @@ class RadiamAgent
             if ($res and isset($res->id)) {
                 $currentUserId = $res->id;
                 $projectConfigList = array();
-                //TODO: add info into project config list
-                // for p in config['projects']['project_list']:
-                //     project_config_list.append({
-                //         "project": config[p]['name'],
-                //         "config": {"rootdir": config[p]['rootdir']}
-                //     })
+                // add info into project config list
+                foreach ($this->config['projects'] as $project_key) {
+                    $projectInfo = array(
+                        "project" => $this->config[$project_key]['radiam_project_name'],
+                        "config"  => array("rootdir" => $this->config[$project_key]['rootdir'])
+                    );
+                    array_push($projectConfigList, $projectInfo);
+                };
                 $newAgent = array(
                     "id" => $this->config['agent_id'],
                     "user" => $currentUserId,

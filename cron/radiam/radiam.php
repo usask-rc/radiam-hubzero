@@ -165,6 +165,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		{
 			$project_info = array(
 				'radiam_project_uuid' => $project->radiam_project_uuid, 
+				'radiam_project_name' => $project->radiam_project_name,
 			);
 			$project_alias = $obj->getAlias($project->project_id);
 			$path = \Components\Projects\Helpers\Html::getProjectRepoPath(strtolower($project_alias), 'files');
