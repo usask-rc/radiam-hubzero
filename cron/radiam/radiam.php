@@ -67,8 +67,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 		$logger = RadiamHelper::setLogger();
 		$logger->info("Running the Radiam Cron Job postApi...");
 		try {
-			// TODO: don't return loadconfigstatus
-			list($config, $loadConfigStatus) = $this->_loadConfig($logger);
+			$config = $this->_loadConfig($logger);
 
 			// Crawl all the projects that have been associated with radiam projects
 			foreach($config['projects'] as $project_key) {
@@ -130,8 +129,6 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 
 		if (!array_key_exists('radiam_host_url', $config)) {
 			throw new Exception(Lang::txt('PLG_CRON_RADIAM_ERROR_HOST_URL'), ErrorCode::NOT_FOUND_ERROR);
-			// delete this return
-			return array($config, false);
 		}
 
 		if (!array_key_exists('agent_id', $config)) {
@@ -173,8 +170,7 @@ class plgCronRadiam extends \Hubzero\Plugin\Plugin
 			$config[$project->project_id] = $project_info;
 			array_push($config['projects'], $project->project_id);
 		}
-
-		return array($config, true);
+		return $config;
 	}
 
 	/**
