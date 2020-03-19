@@ -74,13 +74,7 @@ class Radiam extends SiteController
         $this->_authorize();
         $this->_loadConfig();
 
-        $this->registerTask('new', 'edit');
         $this->registerTask('login', 'login');
-
-        $this->registerTask('groups', 'groups');
-        $this->registerTask('locations', 'locations');
-        $this->registerTask('projects', 'projects');
-        $this->registerTask('users', 'users');
 
         parent::execute();
     }
@@ -150,18 +144,9 @@ class Radiam extends SiteController
         }        
     }
 
-    public function getUsers($access_token, $radiam_url) {
-        return $this->getJsonFromRadiamApi($access_token, $radiam_url, self::USERS_API);
-    }
-
     public function getProjects($access_token, $radiam_url) {
         $projectsJson = $this->getJsonFromRadiamApi($access_token, $radiam_url, self::PROJECTS_API);
         return new Projects($projectsJson);
-    }
-
-    public function getLocations($access_token, $radiam_url) {
-        $locationsJson = $this->getJsonFromRadiamApi($access_token, $radiam_url, self::LOCATIONS_API);
-        return $locationsJson;
     }
 
     public function getLocation($access_token, $radiam_url, $locationId) {
@@ -199,10 +184,6 @@ class Radiam extends SiteController
         return new Files($filesJson, $locationsArray);
     }
 
-    public function getGroups($access_token, $radiam_url) {
-        // TODO Replace with proper constant / config
-        return $this->getJsonFromRadiamApi($access_token, $radiam_url, self::GROUPS_API);
-    }
 
     /**
      * Get a php StdObject with the contents of the Json returned from the Radiam api
@@ -332,89 +313,9 @@ class Radiam extends SiteController
         }
     }
 
-     public function projectsTask()
-    {
-        $token = $this->getToken();
-        if (!$token)
-        {
-            $this->redirect($url='login', null, null);
-        }
-
-        $radiam_url = $this->getRadiamURL();
-
-        $projects = $this->getProjects($token->get('access_token'), $radiam_url);
-
-        $this->view
-            ->set('config', $this->config)
-            ->set('filters', null)
-            ->set('projects', $projects)
-            ->display();
-
-    }
-
-    public function locationsTask()
-    {
-        $token = $this->getToken();
-        if (!$token)
-        {
-            $this->redirect($url='login', null, null);
-        }
-
-        $radiam_url = $this->getRadiamURL();
-
-        $locations = $this->getLocations($token->get('access_token'), $radiam_url);
-
-        $this->view
-            ->set('config', $this->config)
-            ->set('filters', null)
-            ->set('locations', $locations)
-            ->display();
-
-    }
-
-    public function groupsTask()
-    {
-        $token = $this->getToken();
-        if (!$token)
-        {
-            $this->redirect($url='login', null, null);
-        }
-
-        $radiam_url = $this->getRadiamURL();
-
-        $groups = $this->getGroups($token->get('access_token'), $radiam_url);
-
-        $this->view
-            ->set('config', $this->config)
-            ->set('filters', null)
-            ->set('groups', $groups)
-            ->display();
-
-    }
-
     public function getRadiamURL()
     {   
         return $this->config->get('radiamurl', null);
-    }
-
-    public function usersTask()
-    {
-        $token = $this->getToken();
-        if (!$token)
-        {
-            $this->redirect($url='login', null, null);
-        }
-
-        $radiam_url = $this->getRadiamURL();
-
-        $users = $this->getUsers($token->get('access_token'), $radiam_url);
-
-        $this->view
-            ->set('config', $this->config)
-            ->set('filters', null)
-            ->set('users', $users)
-            ->display();
-
     }
 
     /**
@@ -504,10 +405,6 @@ class Radiam extends SiteController
 
     }
 
-    public function automaticUserId()
-    {
-        return (int)User::get('id', 0);
-    }
 
     /**
      * Method to check admin access permission
