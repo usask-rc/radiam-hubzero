@@ -533,7 +533,9 @@ class RadiamAgent
     {
         $this->logger->info("Deleted event has been captured. Handling it...");
         try {
-            $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $event->src_path);
+            $rel_src_path = $this->getRelativePath($event->src_path);
+            $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $rel_src_path);
+
             $what = 'unknown';
             if ($res != null) {
                 foreach ($res->results as $doc) {
@@ -713,16 +715,17 @@ class RadiamAgent
     /**
      * Connect to the Radiam Server to create or delete a document
      * 
-     * @param string $path The path of the document
+     * @param string $path The absolute path of the document
      * @param array $metadata The metadata of the document
      * @return void
      */
     private function tryConnectionInWorker($path, $metadata=null, $retries=self::RETRIES)
     {   
+        $relativePath = $this->getRelativePath($path);
         while ($retries > 0) 
         {
             try {
-                $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $path);
+                $res = $this->radiamAPI->searchEndpointByPath($this->project_config['endpoint'], $relativePath);
                 if ($res != null) 
                 {
                     if ($metadata != null)
@@ -979,5 +982,22 @@ class RadiamAgent
             $itemcount = count($items);
         }
         return array($filecount, $itemcount);
+    }
+
+    /**
+     * Helper function: get the relative path from the absolute path
+     *
+     * @param string $path
+     * @return string
+     */
+    private function getRelativePath($path) {
+        $rootdir = $this->project_config['rootdir'];
+        if ($path == $rootdir) {
+            $relativePath = '.';
+        }
+        else {
+            $relativePath = ltrim(str_replace($rootdir, '', $path), DS);
+        }
+        return $relativePath;
     }
 }
