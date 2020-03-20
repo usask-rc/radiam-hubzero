@@ -37,7 +37,7 @@ The component is installed and available to administrators after running the mig
 - Log into your HubZero administration section
 - Click on the menu for Components and find Radiam in the list and click on it
 - Edit the `radiam_host_url` setting to match where your Radiam instance is
-- After the end user log into the Radiam on HubZero, add new project to associate a Radiam project and a HubZero project
+- After the regular HubZero user log into the Radiam on HubZero, add new project to associate a Radiam project and a HubZero project
 
 ### Module Configuration
 
@@ -77,6 +77,8 @@ For the radiam plugin of the cron type,
 
 As a regular HubZero user, navigate to your dashboard.  Add the Radiam module in your dashboard.
 
+- Click on the Radiam Login button
+- Log into Radiam with Radiam username and password
 
 ## Removal
 
