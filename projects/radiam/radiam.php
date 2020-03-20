@@ -97,12 +97,15 @@ class plgProjectsRadiam extends \Hubzero\Plugin\Plugin
 					$this->_saveDir();
 					break;
 				case 'moveit':
+				case 'move':
 					$this->_move();
 					break;
 				case 'removeit':
+				case 'delete':
 					$this->_delete();
 					break;
 				case 'renameit':
+				case 'rename':
 					$this->_rename();
 					break;	
 			}		
