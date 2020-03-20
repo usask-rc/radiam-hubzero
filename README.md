@@ -21,7 +21,7 @@ cd /var/www/hubname
 php muse migration
 ```
 
-That command should list at least six database migrations that will be run: two for the component, one for the module, three for the plugin.  If it looks OK, you can proceed:
+That command should list at least seven database migrations that will be run: two for the component, two for the module, three for the plugin.  If it looks OK, you can proceed:
 
 ```
 # Full run this time
@@ -37,10 +37,18 @@ The component is installed and available to administrators after running the mig
 - Log into your HubZero administration section
 - Click on the menu for Components and find Radiam in the list and click on it
 - Edit the `radiam_host_url` setting to match where your Radiam instance is
+- After the end user log into the Radiam on HubZero, add new project to associate a Radiam project and a HubZero project
 
 ### Module Configuration
 
-The module is installed but not available until you create an instance of it.
+The module is installed but not available until you create an instance of it. There is an installed instance of the module. Administrator can publish it to make it available for endusers. 
+
+- Log into your HubZero administration section
+- Click on the menu Extensions -> Module Manager
+- Select "mod_radiam" for the Type
+- Click the check mark to publish the module instance
+
+Administrator is free to edit the default Radiam module instance or delete it and create a new one. 
 
 - Log into your HubZero administration section
 - Click on the menu Extensions -> Module Manager
