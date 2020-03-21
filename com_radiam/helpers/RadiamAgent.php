@@ -600,7 +600,7 @@ class RadiamAgent
                 if ($metadata != null)
                 {   
                     $this->tryConnectionInWorker($pathIn, $metadata);
-                    $this->logger->info("{$action} {$what}: {$path}");
+                    $this->logger->info("{$what} with path {$path} created.");
                 }
     
                 list($metaStatus, $parentPath) = $this->updatePath($path);
@@ -730,15 +730,23 @@ class RadiamAgent
                 {
                     if ($metadata != null)
                     {
-                        $this->radiamAPI->createDocument($this->project_config['endpoint'], $metadata);
+                        $createDocStatus = $this->radiamAPI->createDocument($this->project_config['endpoint'], $metadata);
                         $metadataStr = json_encode($metadata);
                         $this->logger->debug("POSTing to API: {$metadataStr}");
+                        if ($createDocStatus == null) {
+                            throw new Exception("CREATING document in tryConnectionInWorker function failed.");
+                        }
                     }
                     else
                     {
                         foreach ($res->results as $doc) {
-                            $this->radiamAPI->deleteDocument($this->project_config['endpoint'], $doc->id);
-                            $this->logger->info("DELETEing document {$doc->id} from API");
+                            $deleteDocStatus = $this->radiamAPI->deleteDocument($this->project_config['endpoint'], $doc->id);
+                            if ($deleteDocStatus == null) {
+                                throw new Exception("DELETEING document {$doc->id} failed.");
+                            }
+                            else {
+                                $this->logger->info("DELETEing document {$doc->id} from API");
+                            }
                         }
                     }
                 }     
