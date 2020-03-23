@@ -150,7 +150,7 @@ class Adminradproject extends AdminController
 			$radiam_host_url = $r->configvalue;
 			break;
 		}		
-		$logger = RaidamHelper::setLogger();
+		$logger = RadiamHelper::setLogger();
 		$radiam_project = array();
 		foreach (Radtoken::all() as $token) {
 			$tokens_array = array (
