@@ -807,7 +807,10 @@ class RadiamAgent
      * @return array $status, $parentPath
      */
     private function updatePath($path)
-    {   
+    {   $relativePath = $this->getRelativePath($path);
+        if ($relativePath == '.') {
+            return array(false, null);
+        }
         $parentPath = dirname($path);
         $metadata = $this->getDirMeta($parentPath);
         if ($metadata != null) {
@@ -817,7 +820,6 @@ class RadiamAgent
         else{
             return array(false, $parentPath);
         }
-        return;
     }
 
 
