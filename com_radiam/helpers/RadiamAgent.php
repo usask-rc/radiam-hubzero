@@ -179,7 +179,6 @@ class RadiamAgent
         // Create the location if needed
         if (!array_key_exists('location_id', $this->config)) {
             $res = $this->radiamAPI->searchEndpointByName('locations', $this->config['location_name'], "display_name");
-            // file_put_contents("locations_result", print_r($res, true));
             if ($res and isset($res->results) and count($res->results) > 0) {
                 $this->config['location_id'] = $res->results[0]->id;
             }
@@ -210,13 +209,18 @@ class RadiamAgent
                     return array(false, "Tried to create a new location, but the API call failed.");
                 }
             }
-            // Write the location id to the radconfig table
-            $db = App::get('db');
-            $currentUserId = User::get('id');
-            $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
-                    VALUES ('location_id', '{$this->config['location_id']}', now(), $currentUserId);";
-            $db->setQuery($sql);
-            $db->query();
+
+            \Hubzero\Database\Query::purgeCache();
+            $locationConfig = RadConfig::whereEquals('configname', 'location_id')->rows();
+            if ($locationConfig->count() == 0) {
+                // Write the location id to the radconfig table
+                $db = App::get('db');
+                $currentUserId = User::get('id');
+                $sql = "INSERT INTO `#__radiam_radconfigs` (`configname`, `configvalue`, `created`, `created_by`) 
+                        VALUES ('location_id', '{$this->config['location_id']}', now(), $currentUserId);";
+                $db->setQuery($sql);
+                $db->query();
+            }
         }
         // Create the user agent if needed
         $res = $this->radiamAPI->searchEndpointByName('useragents', $this->config['agent_id'], "id");
