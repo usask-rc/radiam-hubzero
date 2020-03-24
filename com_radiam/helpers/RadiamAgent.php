@@ -197,8 +197,12 @@ class RadiamAgent
                     "host_name"    => $hostname,
                     "location_type"=> $locationId
                 );
+                $newLocation["projects"] = array();
+                foreach ($this->config['projects'] as $project_key) {
+                    $thisProject = array("id" => $this->config[$project_key]['radiam_project_uuid']);
+                    array_push($newLocation["projects"], $thisProject);
+                }
                 $res = $this->radiamAPI->createLocation($newLocation);
-                // file_put_contents("create_location_result",print_r($res, true));
                 if ($res and isset($res->id)) {
                     $this->config['location_id'] = $res->id;
                 }
