@@ -807,11 +807,12 @@ class RadiamAgent
      * @return array $status, $parentPath
      */
     private function updatePath($path)
-    {   $relativePath = $this->getRelativePath($path);
-        if ($relativePath == '.') {
+    {   
+        $parentPath = dirname($path);
+        $relativeParentPath = $this->getRelativePath($parentPath);
+        if ($relativeParentPath == '.') {
             return array(false, null);
         }
-        $parentPath = dirname($path);
         $metadata = $this->getDirMeta($parentPath);
         if ($metadata != null) {
             $this->tryConnectionInWorker($path, $metadata);
