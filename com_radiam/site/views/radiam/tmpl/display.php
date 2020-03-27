@@ -41,7 +41,7 @@ $projects = $this->get('projects');
 $files = $this->get('files');
 $noFilesInProject = $projects->count >= 1 && $files->count == 0 && ($this->filters["search"] == "");
 $noFilesInSearch = $projects->count >= 1 && $files->count == 0 && !($this->filters["search"] == "");
-
+$projectLinkRadiam = $this->config->get('radiamurl') . '#/projects/' . $project . '/show';
 if (Pathway::count() <= 0)
 {
     Pathway::append(
@@ -64,6 +64,13 @@ $this->css()
         <span><?php echo Lang::txt('COM_RADIAM_PROJECT'); ?></span>
         <?php echo $projects->renderSelect($project); ?>
     </div>
+
+    <div id="sub-content-header-extra">
+        <a href="<?php echo $projectLinkRadiam; ?>">
+		    <?php echo Lang::txt('COM_RADIAM_LINK_RADIAM'); ?>
+        </a>
+    </div>
+
 </header>
 
 <section class="main section">
