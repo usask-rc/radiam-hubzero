@@ -167,8 +167,12 @@ class Radiam extends SiteController
                                                                  "minimum_should_match" => 1)));
             $qDirsJson = $this->postJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query, $qDirsbody);
             $filesJson = new StdClass;
-            $filesJson->count = $qFilesJson->count + $qDirsJson->count;
-            $filesJson->results = array_merge($qFilesJson->results, $qDirsJson->results);
+            $qFilesCount = isset($qFilesJson->count) ? $qFilesJson->count : 0;
+            $qDirsCount = isset($qDirsJson->count) ? $qDirsJson->count : 0;  
+            $filesJson->count = $qFilesCount + $qDirsCount;
+            $qFilesResults = isset($qFilesJson->results) ? $qFilesJson->results : array();
+            $qDirsResults = isset($qDirsJson->results) ? $qDirsJson->results : array();
+            $filesJson->results = array_merge($qFilesResults, $qDirsResults);
         }
         else {
             $filesJson = $this->postJsonFromRadiamApi($accessToken, $radiamUrl, self::PROJECTS_API . $projectId . "/" . self::FILES_PATH, $query);

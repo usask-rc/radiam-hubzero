@@ -59,11 +59,11 @@ class Router extends Base
         //     $segments[] = $query['project'];
         //     unset($query['project']);
         // }
-        if (!empty($query['search']))
-        {
-            $segments[] = $query['search'];
-            unset($query['search']);
-        }
+        // if (!empty($query['search']))
+        // {
+        //     $segments[] = $query['search'];
+        //     unset($query['search']);
+        // }
         if (!empty($query['task']))
         {
             $segments[] = $query['task'];
