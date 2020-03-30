@@ -263,8 +263,6 @@ class Radiam extends SiteController
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
         if ($body != null) {
-            file_put_contents("body.txt", print_r($body , true));
-            file_put_contents("here.txt", print_r("here" , true));
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($body));
         }
 
