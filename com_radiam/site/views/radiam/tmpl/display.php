@@ -66,7 +66,7 @@ $this->css()
     </div>
 
     <div id="sub-content-header-extra">
-        <a href="<?php echo $projectLinkRadiam; ?>">
+        <a target="_blank" href="<?php echo $projectLinkRadiam; ?>">
 		    <?php echo Lang::txt('COM_RADIAM_LINK_RADIAM'); ?>
         </a>
     </div>
