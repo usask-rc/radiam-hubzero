@@ -98,7 +98,7 @@ class Radiam extends SiteController
             if ($token !== false && !$token->expired($this))
             {
                 $dashboardUrl = 'index.php?option=com_members&id=' . User::get('id') . '&active=dashboard';
-                $this->redirect($dashboardUrl, Lang::txt('You have already logined on Radiam.'), null);
+                $this->redirect($dashboardUrl, Lang::txt('You have already logged in to Radiam.'), null);
                 
             }
             else if($token === false) {
